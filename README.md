@@ -1,2 +1,13 @@
-# Task-Inhouse-System
-This is in-house system of Task-co and built with line official account rich-menu for frontend.
+株式会社Task　業務支援システム(車両情報一覧の表示)＆クライアント画面表示　
+１．概要
+LINEリッチメニューからこのページを表示し、そこに載る情報は、Make経由でGスプシ（車両情報）とGドライブから持ってくる
+
+２．軽い設計書
+①社員側公式アカウント「admin」
+・リッチメニュー：車両登録　車両検索　情報変更　請求書作成　車両一覧
+
+②社員側公式アカウント「users」
+・リッチメニュー：車両登録　車両検索　情報変更　請求書作成
+
+③クライアント側公式アカウント
+・リッチメニュー：車両一覧
