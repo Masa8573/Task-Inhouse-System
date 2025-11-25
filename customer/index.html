@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>社用車レンタル - 顧客向け</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      background-color: #1f2937;
+    }
+
+    .customer-container {
+      max-width: 448px;
+      margin: 0 auto;
+      min-height: 100vh;
+    }
+
+    .customer-header {
+      background-color: #fff;
+      padding: 24px;
+      border-bottom: 1px solid #374151;
+    }
+
+    .customer-header h1 {
+      font-size: 24px;
+      font-weight: bold;
+      color: #000;
+      letter-spacing: 0.05em;
+    }
+
+    .customer-header p {
+      font-size: 14px;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 400px;
+      gap: 16px;
+      padding: 40px 16px;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #e5e7eb;
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      color: #9ca3af;
+      font-size: 14px;
+    }
+
+    .error-container {
+      background-color: #fee;
+      border: 1px solid #fcc;
+      color: #c33;
+      padding: 16px;
+      margin: 16px;
+      text-align: center;
+    }
+
+    .retry-button {
+      margin-top: 12px;
+      padding: 8px 16px;
+      background-color: #000;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .retry-button:hover {
+      background-color: #333;
+    }
+
+    .vehicle-list {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .vehicle-card {
+      background-color: #fff;
+      border-left: 4px solid #000;
+      cursor: pointer;
+      transition: transform 0.2s;
+      position: relative;
+    }
+
+    .vehicle-card:hover {
+      transform: translateX(4px);
+    }
+
+    .vehicle-card.unavailable {
+      position: relative;
+    }
+
+    .vehicle-card.unavailable::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.4);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .vehicle-card-inner {
+      position: relative;
+      z-index: 0;
+    }
+
+    .vehicle-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      background-color: #f3f4f6;
+    }
+
+    .vehicle-card-content {
+      padding: 20px;
+    }
+
+    .vehicle-card h2 {
+      font-size: 20px;
+      font-weight: bold;
+      color: #000;
+      margin-bottom: 16px;
+      letter-spacing: 0.025em;
+    }
+
+    .vehicle-info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .info-item {
+      border-bottom: 1px solid #d1d5db;
+      padding-bottom: 8px;
+    }
+
+    .info-item.full-width {
+      grid-column: span 2;
+    }
+
+    .info-label {
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+
+    .info-value {
+      font-size: 16px;
+      color: #000;
+    }
+
+    .info-value.bold {
+      font-weight: bold;
+    }
+
+    .info-value.small {
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      margin-top: 8px;
+    }
+
+    .status-available {
+      background-color: #059669;
+    }
+
+    .status-unavailable {
+      background-color: #6b7280;
+    }
+
+    .detail-view {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #1f2937;
+      z-index: 100;
+      overflow-y: auto;
+    }
+
+    .detail-container {
+      max-width: 448px;
+      margin: 0 auto;
+      min-height: 100vh;
+    }
+
+    .detail-header {
+      background-color: #fff;
+      border-bottom: 1px solid #d1d5db;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .detail-header-inner {
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .back-button {
+      padding: 8px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .back-button:hover {
+      background-color: #f3f4f6;
+    }
+
+    .detail-header h2 {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .detail-content {
+      background-color: #fff;
+      margin: 16px;
+    }
+
+    .detail-image {
+      width: 100%;
+      height: 250px;
+      object-fit: cover;
+      background-color: #f3f4f6;
+    }
+
+    .detail-info {
+      padding: 24px;
+    }
+
+    .detail-title {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 16px;
+    }
+
+    .detail-info-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .detail-info-item {
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 12px;
+    }
+
+    .detail-info-label {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+
+    .detail-info-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: #000;
+    }
+
+    .contact-button {
+      width: 100%;
+      background-color: #22c55e;
+      color: #fff;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      margin-top: 24px;
+      transition: background-color 0.2s;
+    }
+
+    .contact-button:hover {
+      background-color: #16a34a;
+    }
+
+    .contact-button:disabled {
+      background-color: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div id="listView" class="customer-container">
+    <div class="customer-header">
+      <h1>CORPORATE CAR RENTAL</h1>
+      <p>法人向け高級車両レンタルサービス</p>
+    </div>
+
+    <div id="loadingContainer" class="loading-container">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">車両情報を読み込んでいます...</div>
+    </div>
+
+    <div id="errorContainer" class="error-container hidden">
+      <p id="errorMessage">データの読み込みに失敗しました</p>
+      <button class="retry-button" onclick="fetchVehicleData()">再試行</button>
+    </div>
+    
+    <div class="vehicle-list hidden" id="vehicleList"></div>
+  </div>
+
+  <div id="detailView" class="detail-view hidden">
+    <div class="detail-container">
+      <div class="detail-header">
+        <div class="detail-header-inner">
+          <button class="back-button" id="backButton">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <h2>車両詳細</h2>
+        </div>
+      </div>
+
+      <div class="detail-content" id="detailContent"></div>
+    </div>
+  </div>
+
+  <script>
+    // ★★★ MakeのWebhook URLをここに設定してください ★★★
+    var MAKE_WEBHOOK_URL = 'https://hook.us1.make.com/your-webhook-url-here';
+    
+    var vehicles = [];
+
+    function fetchVehicleData() {
+      document.getElementById('loadingContainer').classList.remove('hidden');
+      document.getElementById('errorContainer').classList.add('hidden');
+      document.getElementById('vehicleList').classList.add('hidden');
+
+      fetch(MAKE_WEBHOOK_URL, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(function(response) {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(function(data) {
+        // Makeからのレスポンスデータを想定
+        // データ構造例:
+        // {
+        //   "vehicles": [
+        //     {
+        //       "id": 1,
+        //       "model": "トヨタ アルファード",
+        //       "price": "150,000円/月",
+        //       "area": "東京23区、神奈川全域",
+        //       "status": "貸出可",
+        //       "image": "https://example.com/image.jpg"
+        //     },
+        //     ...
+        //   ]
+        // }
+        
+        if (data && data.vehicles && Array.isArray(data.vehicles)) {
+          vehicles = data.vehicles;
+          renderVehicleList();
+          document.getElementById('loadingContainer').classList.add('hidden');
+          document.getElementById('vehicleList').classList.remove('hidden');
+        } else {
+          throw new Error('Invalid data format');
+        }
+      })
+      .catch(function(error) {
+        console.error('Error fetching data:', error);
+        document.getElementById('loadingContainer').classList.add('hidden');
+        document.getElementById('errorContainer').classList.remove('hidden');
+        document.getElementById('errorMessage').textContent = 'データの読み込みに失敗しました: ' + error.message;
+      });
+    }
+
+    function renderVehicleList() {
+      var container = document.getElementById('vehicleList');
+      var html = '';
+      
+      // ステータスで並び替え: 貸出可を上に
+      var sortedVehicles = vehicles.slice().sort(function(a, b) {
+        if (a.status === '貸出可' && b.status !== '貸出可') return -1;
+        if (a.status !== '貸出可' && b.status === '貸出可') return 1;
+        return 0;
+      });
+      
+      for (var i = 0; i < sortedVehicles.length; i++) {
+        var vehicle = sortedVehicles[i];
+        var isAvailable = vehicle.status === '貸出可';
+        var cardClass = isAvailable ? 'vehicle-card' : 'vehicle-card unavailable';
+        var statusClass = isAvailable ? 'status-available' : 'status-unavailable';
+        var statusText = isAvailable ? '貸出可' : vehicle.status;
+        
+        html += '<div class="' + cardClass + '" onclick="showDetail(' + vehicle.id + ')">';
+        html += '<div class="vehicle-card-inner">';
+        
+        if (vehicle.image) {
+          html += '<img src="' + vehicle.image + '" alt="' + vehicle.model + '" class="vehicle-image">';
+        } else {
+          html += '<div class="vehicle-image"></div>';
+        }
+        
+        html += '<div class="vehicle-card-content">';
+        html += '<h2>' + vehicle.model + '</h2>';
+        html += '<div class="vehicle-info-grid">';
+        html += '<div class="info-item">';
+        html += '<div class="info-label">価格</div>';
+        html += '<div class="info-value bold">' + vehicle.price + '</div>';
+        html += '</div>';
+        html += '<div class="info-item">';
+        html += '<div class="info-label">ステータス</div>';
+        html += '<div><span class="status-badge ' + statusClass + '">' + statusText + '</span></div>';
+        html += '</div>';
+        html += '</div>';
+        html += '<div class="info-item full-width">';
+        html += '<div class="info-label">対応エリア</div>';
+        html += '<div class="info-value small">' + vehicle.area + '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+      }
+      
+      container.innerHTML = html;
+    }
+
+    function showDetail(id) {
+      var vehicle = null;
+      for (var i = 0; i < vehicles.length; i++) {
+        if (vehicles[i].id === id) {
+          vehicle = vehicles[i];
+          break;
+        }
+      }
+      
+      if (!vehicle) return;
+      
+      var isAvailable = vehicle.status === '貸出可';
+      var statusClass = isAvailable ? 'status-available' : 'status-unavailable';
+      var statusText = isAvailable ? '貸出可' : vehicle.status;
+
+      var html = '';
+      
+      if (vehicle.image) {
+        html += '<img src="' + vehicle.image + '" alt="' + vehicle.model + '" class="detail-image">';
+      } else {
+        html += '<div class="detail-image"></div>';
+      }
+      
+      html += '<div class="detail-info">';
+      html += '<h1 class="detail-title">' + vehicle.model + '</h1>';
+      
+      html += '<div class="detail-info-list">';
+      
+      html += '<div class="detail-info-item">';
+      html += '<div class="detail-info-label">価格</div>';
+      html += '<div class="detail-info-value">' + vehicle.price + '</div>';
+      html += '</div>';
+      
+      html += '<div class="detail-info-item">';
+      html += '<div class="detail-info-label">対応エリア</div>';
+      html += '<div class="detail-info-value">' + vehicle.area + '</div>';
+      html += '</div>';
+      
+      html += '<div class="detail-info-item">';
+      html += '<div class="detail-info-label">ステータス</div>';
+      html += '<div><span class="status-badge ' + statusClass + '">' + statusText + '</span></div>';
+      html += '</div>';
+      
+      html += '</div>';
+      
+      if (isAvailable) {
+        html += '<button class="contact-button" onclick="contactForReservation(\'' + vehicle.model + '\')">LINEで予約する</button>';
+      } else {
+        html += '<button class="contact-button" disabled>現在貸出できません</button>';
+      }
+      
+      html += '</div>';
+
+      document.getElementById('detailContent').innerHTML = html;
+      document.getElementById('listView').classList.add('hidden');
+      document.getElementById('detailView').classList.remove('hidden');
+    }
+
+    function contactForReservation(model) {
+      var text = '【車両予約希望】\n車種: ' + model + '\n\nこちらの車両の予約を希望します。';
+      
+      // LINEアプリで開く（モバイルの場合）
+      // または、クリップボードにコピー
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function() {
+          alert('予約内容をコピーしました。LINEでメッセージを送信してください。');
+        });
+      } else {
+        alert('こちらの内容をLINEで送信してください:\n\n' + text);
+      }
+    }
+
+    document.getElementById('backButton').addEventListener('click', function() {
+      document.getElementById('detailView').classList.add('hidden');
+      document.getElementById('listView').classList.remove('hidden');
+    });
+
+    fetchVehicleData();
+  </script>
+</body>
+</html>
