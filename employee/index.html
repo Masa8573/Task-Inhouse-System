@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>社用車管理システム - 社員向け</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f3f4f6;
+    }
+
+    .employee-container {
+      max-width: 1152px;
+      margin: 0 auto;
+      min-height: 100vh;
+    }
+
+    .employee-header {
+      background-color: #fff;
+      padding: 16px;
+      border-bottom: 1px solid #d1d5db;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .employee-header h1 {
+      font-size: 20px;
+      font-weight: bold;
+      color: #000;
+    }
+
+    .employee-header p {
+      font-size: 14px;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      background-color: #fff;
+      border-collapse: collapse;
+    }
+
+    thead tr {
+      background-color: #000;
+      color: #fff;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    thead th {
+      padding: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      font-size: 14px;
+      border-bottom: 1px solid #e5e7eb;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: #f9fafb;
+    }
+
+    tbody tr:hover {
+      background-color: #e5e7eb;
+    }
+
+    tbody td {
+      padding: 12px;
+      white-space: nowrap;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .status-available { background-color: #059669; }
+    .status-in-use { background-color: #d97706; }
+    .status-repair { background-color: #dc2626; }
+    .status-retired { background-color: #6b7280; }
+
+    .detail-view {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #f3f4f6;
+      z-index: 100;
+    }
+
+    .detail-container {
+      max-width: 896px;
+      margin: 0 auto;
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    .detail-header {
+      background-color: #fff;
+      border-bottom: 1px solid #d1d5db;
+    }
+
+    .detail-header-inner {
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .back-button {
+      padding: 8px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .back-button:hover {
+      background-color: #f3f4f6;
+    }
+
+    .detail-header h2 {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .detail-content {
+      background-color: #fff;
+      margin: 16px;
+      padding: 24px;
+    }
+
+    .detail-title-section {
+      margin-bottom: 24px;
+    }
+
+    .detail-title-section h3 {
+      font-size: 24px;
+      font-weight: bold;
+      display: inline-block;
+      margin-right: 12px;
+    }
+
+    .detail-title-section .status-badge {
+      vertical-align: middle;
+    }
+
+    .detail-title-section p {
+      color: #6b7280;
+      font-size: 18px;
+      margin-top: 8px;
+    }
+
+    .detail-info-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .detail-info-item {
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 12px;
+    }
+
+    .detail-info-label {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+
+    .detail-info-value {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div id="listView" class="employee-container">
+    <div class="employee-header">
+      <h1>車両空き情報管理</h1>
+      <p id="vehicleCount"></p>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>車両ナンバー</th>
+            <th>車種</th>
+            <th>ステータス</th>
+            <th>車検日</th>
+            <th>保険日</th>
+            <th>エリア</th>
+            <th>価格</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="vehicleTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="detailView" class="detail-view hidden">
+    <div class="detail-container">
+      <div class="detail-header">
+        <div class="detail-header-inner">
+          <button class="back-button" id="backButton">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <h2>車両詳細情報</h2>
+        </div>
+      </div>
+
+      <div class="detail-content" id="detailContent"></div>
+    </div>
+  </div>
+
+  <script>
+    var employeeVehicles = [
+      { id: 1, plateNumber: '品川 500 あ 1234', model: 'トヨタ アルファード', status: '待機中', inspection: '2025-12-15', insurance: '2026-03-20', area: '東京', price: '15,000円/日' },
+      { id: 2, plateNumber: '横浜 500 か 5678', model: 'トヨタ ハイエース', status: '使用中', inspection: '2025-11-08', insurance: '2025-12-30', area: '神奈川', price: '12,000円/日' },
+      { id: 3, plateNumber: '品川 300 さ 9012', model: 'レクサス LS', status: '待機中', inspection: '2026-01-22', insurance: '2026-05-15', area: '東京', price: '25,000円/日' },
+      { id: 4, plateNumber: '品川 500 た 3456', model: 'トヨタ クラウン', status: '修理中', inspection: '2025-10-30', insurance: '2026-02-10', area: '東京', price: '18,000円/日' },
+      { id: 5, plateNumber: '品川 300 な 7890', model: 'メルセデス・ベンツ Sクラス', status: '待機中', inspection: '2026-02-18', insurance: '2026-06-25', area: '東京', price: '35,000円/日' },
+      { id: 6, plateNumber: '横浜 300 は 2345', model: 'BMW 7シリーズ', status: '使用中', inspection: '2025-12-05', insurance: '2026-04-18', area: '神奈川', price: '30,000円/日' },
+      { id: 7, plateNumber: '品川 500 ま 6789', model: 'トヨタ アルファード', status: '待機中', inspection: '2026-03-10', insurance: '2026-07-22', area: '東京', price: '15,000円/日' },
+      { id: 8, plateNumber: '千葉 500 や 1234', model: 'トヨタ ハイエース', status: '廃車済み', inspection: '-', insurance: '-', area: '千葉', price: '-' }
+    ];
+
+    function renderEmployeeView() {
+      document.getElementById('vehicleCount').textContent = '全' + employeeVehicles.length + '台';
+      
+      var tbody = document.getElementById('vehicleTable');
+      var html = '';
+      
+      for (var i = 0; i < employeeVehicles.length; i++) {
+        var vehicle = employeeVehicles[i];
+        var statusClass = '';
+        
+        if (vehicle.status === '待機中') {
+          statusClass = 'status-available';
+        } else if (vehicle.status === '使用中') {
+          statusClass = 'status-in-use';
+        } else if (vehicle.status === '修理中') {
+          statusClass = 'status-repair';
+        } else {
+          statusClass = 'status-retired';
+        }
+        
+        html += '<tr onclick="showDetail(' + vehicle.id + ')">';
+        html += '<td style="font-weight: 500;">' + vehicle.plateNumber + '</td>';
+        html += '<td>' + vehicle.model + '</td>';
+        html += '<td><span class="status-badge ' + statusClass + '">' + vehicle.status + '</span></td>';
+        html += '<td>' + vehicle.inspection + '</td>';
+        html += '<td>' + vehicle.insurance + '</td>';
+        html += '<td>' + vehicle.area + '</td>';
+        html += '<td style="font-weight: 600;">' + vehicle.price + '</td>';
+        html += '<td>';
+        html += '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#9ca3af">';
+        html += '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />';
+        html += '</svg>';
+        html += '</td>';
+        html += '</tr>';
+      }
+      
+      tbody.innerHTML = html;
+    }
+
+    function showDetail(id) {
+      var vehicle = null;
+      for (var i = 0; i < employeeVehicles.length; i++) {
+        if (employeeVehicles[i].id === id) {
+          vehicle = employeeVehicles[i];
+          break;
+        }
+      }
+      
+      if (!vehicle) return;
+      
+      var statusClass = '';
+      if (vehicle.status === '待機中') {
+        statusClass = 'status-available';
+      } else if (vehicle.status === '使用中') {
+        statusClass = 'status-in-use';
+      } else if (vehicle.status === '修理中') {
+        statusClass = 'status-repair';
+      } else {
+        statusClass = 'status-retired';
+      }
+
+      var html = '';
+      html += '<div class="detail-title-section">';
+      html += '<h3>' + vehicle.model + '</h3>';
+      html += '<span class="status-badge ' + statusClass + '">' + vehicle.status + '</span>';
+      html += '<p>' + vehicle.plateNumber + '</p>';
+      html += '</div>';
+      html += '<div class="detail-info-list">';
+      html += '<div class="detail-info-item">';
+      html += '<div class="detail-info-label">車種</div>';
+      html += '<div class="detail-info-value">' + vehicle.model + '</div>';
+      html += '</div>';
+      html += '<div class="detail-info-item">';
+      html += '<div class="detail-info-label">ステータス</div>';
+      html += '<div class="detail-info-value">' + vehicle.status + '</div>';
+      html += '</div>';
+      html += '<div class="detail-info-item">';
+      html += '<div class="detail-info-label">次回車検日</div>';
+      html += '<div class="detail-info-value">' + vehicle.inspection + '</div>';
+      html += '</div>';
+      html += '<div class="detail-info-item">';
+      html += '<div class="detail-info-label">保険適用期限日</div>';
+      html += '<div class="detail-info-value">' + vehicle.insurance + '</div>';
+      html += '</div>';
+      html += '<div class="detail-info-item">';
+      html += '<div class="detail-info-label">エリア</div>';
+      html += '<div class="detail-info-value">' + vehicle.area + '</div>';
+      html += '</div>';
+      html += '<div class="detail-info-item">';
+      html += '<div class="detail-info-label">価格</div>';
+      html += '<div class="detail-info-value">' + vehicle.price + '</div>';
+      html += '</div>';
+      html += '<div style="padding-top: 8px;">';
+      html += '<div class="detail-info-label">車両ID</div>';
+      html += '<div class="detail-info-value">#' + String('0000' + vehicle.id).slice(-4) + '</div>';
+      html += '</div>';
+      html += '</div>';
+
+      document.getElementById('detailContent').innerHTML = html;
+      document.getElementById('listView').classList.add('hidden');
+      document.getElementById('detailView').classList.remove('hidden');
+    }
+
+    document.getElementById('backButton').addEventListener('click', function() {
+      document.getElementById('detailView').classList.add('hidden');
+      document.getElementById('listView').classList.remove('hidden');
+    });
+
+    renderEmployeeView();
+  </script>
+</body>
+</html>
