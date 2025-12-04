@@ -5,60 +5,329 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>社用車レンタル - 顧客向け</title>
   <style>
-      /* 元のCSSをそのまま貼ってください */
-      /* 省略します */
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; background-color: #1f2937; }
-      .customer-container { max-width: 448px; margin: 0 auto; min-height: 100vh; }
-      .customer-header { background-color: #fff; padding: 24px; border-bottom: 1px solid #374151; }
-      .customer-header h1 { font-size: 24px; font-weight: bold; color: #000; letter-spacing: 0.05em; }
-      .customer-header p { font-size: 14px; color: #6b7280; margin-top: 4px; }
-      .loading-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 400px; gap: 16px; padding: 40px 16px; }
-      .loading-spinner { width: 40px; height: 40px; border: 4px solid #e5e7eb; border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite; }
-      @keyframes spin { to { transform: rotate(360deg); } }
-      .loading-text { color: #9ca3af; font-size: 14px; }
-      .error-container { background-color: #fee; border: 1px solid #fcc; color: #c33; padding: 16px; margin: 16px; text-align: center; }
-      .retry-button { margin-top: 12px; padding: 8px 16px; background-color: #000; color: #fff; border: none; cursor: pointer; font-weight: 600; }
-      .retry-button:hover { background-color: #333; }
-      .vehicle-list { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-      .vehicle-card { background-color: #fff; border-left: 4px solid #000; cursor: pointer; transition: transform 0.2s; position: relative; }
-      .vehicle-card:hover { transform: translateX(4px); }
-      .vehicle-card.unavailable { position: relative; }
-      .vehicle-card.unavailable::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.4); z-index: 1; pointer-events: none; }
-      .vehicle-card-inner { position: relative; z-index: 0; }
-      .vehicle-image { width: 100%; height: 200px; object-fit: cover; background-color: #f3f4f6; }
-      .vehicle-card-content { padding: 20px; }
-      .vehicle-card h2 { font-size: 20px; font-weight: bold; color: #000; margin-bottom: 16px; letter-spacing: 0.025em; }
-      .vehicle-info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
-      .info-item { border-bottom: 1px solid #d1d5db; padding-bottom: 8px; }
-      .info-item.full-width { grid-column: span 2; }
-      .info-label { font-size: 12px; color: #6b7280; margin-bottom: 4px; }
-      .info-value { font-size: 16px; color: #000; }
-      .info-value.bold { font-weight: bold; }
-      .info-value.small { font-size: 14px; line-height: 1.6; }
-      .status-badge { display: inline-block; padding: 4px 12px; font-size: 12px; font-weight: 600; color: #fff; margin-top: 8px; }
-      .status-available { background-color: #059669; }
-      .status-unavailable { background-color: #6b7280; }
-      .detail-view { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: #1f2937; z-index: 100; overflow-y: auto; }
-      .detail-container { max-width: 448px; margin: 0 auto; min-height: 100vh; }
-      .detail-header { background-color: #fff; border-bottom: 1px solid #d1d5db; position: sticky; top: 0; z-index: 10; }
-      .detail-header-inner { padding: 16px; display: flex; align-items: center; gap: 12px; }
-      .back-button { padding: 8px; background: none; border: none; cursor: pointer; transition: background-color 0.2s; }
-      .back-button:hover { background-color: #f3f4f6; }
-      .detail-header h2 { font-size: 18px; font-weight: bold; }
-      .detail-content { background-color: #fff; margin: 16px; }
-      .detail-image { width: 100%; height: 250px; object-fit: cover; background-color: #f3f4f6; }
-      .detail-info { padding: 24px; }
-      .detail-title { font-size: 24px; font-weight: bold; margin-bottom: 16px; }
-      .detail-info-list { display: flex; flex-direction: column; gap: 16px; }
-      .detail-info-item { border-bottom: 1px solid #e5e7eb; padding-bottom: 12px; }
-      .detail-info-label { font-size: 14px; color: #6b7280; margin-bottom: 4px; }
-      .detail-info-value { font-size: 18px; font-weight: 600; color: #000; }
-      .contact-button { width: 100%; background-color: #22c55e; color: #fff; padding: 16px; font-size: 16px; font-weight: bold; border: none; cursor: pointer; margin-top: 24px; transition: background-color 0.2s; }
-      .contact-button:hover { background-color: #16a34a; }
-      .contact-button:disabled { background-color: #9ca3af; cursor: not-allowed; }
-      .hidden { display: none; }
-      svg { width: 24px; height: 24px; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      background-color: #1f2937;
+    }
+
+    .customer-container {
+      max-width: 448px;
+      margin: 0 auto;
+      min-height: 100vh;
+    }
+
+    .customer-header {
+      background-color: #fff;
+      padding: 24px;
+      border-bottom: 1px solid #374151;
+    }
+
+    .customer-header h1 {
+      font-size: 24px;
+      font-weight: bold;
+      color: #000;
+      letter-spacing: 0.05em;
+    }
+
+    .customer-header p {
+      font-size: 14px;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 400px;
+      gap: 16px;
+      padding: 40px 16px;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #e5e7eb;
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      color: #9ca3af;
+      font-size: 14px;
+    }
+
+    .error-container {
+      background-color: #fee;
+      border: 1px solid #fcc;
+      color: #c33;
+      padding: 16px;
+      margin: 16px;
+      text-align: center;
+    }
+
+    .retry-button {
+      margin-top: 12px;
+      padding: 8px 16px;
+      background-color: #000;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .retry-button:hover {
+      background-color: #333;
+    }
+
+    .vehicle-list {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .vehicle-card {
+      background-color: #fff;
+      border-left: 4px solid #000;
+      cursor: pointer;
+      transition: transform 0.2s;
+      position: relative;
+    }
+
+    .vehicle-card:hover {
+      transform: translateX(4px);
+    }
+
+    .vehicle-card.unavailable {
+      position: relative;
+    }
+
+    .vehicle-card.unavailable::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.4);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .vehicle-card-inner {
+      position: relative;
+      z-index: 0;
+    }
+
+    .vehicle-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      background-color: #f3f4f6;
+    }
+
+    .vehicle-card-content {
+      padding: 20px;
+    }
+
+    .vehicle-card h2 {
+      font-size: 20px;
+      font-weight: bold;
+      color: #000;
+      margin-bottom: 16px;
+      letter-spacing: 0.025em;
+    }
+
+    .vehicle-info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .info-item {
+      border-bottom: 1px solid #d1d5db;
+      padding-bottom: 8px;
+    }
+
+    .info-item.full-width {
+      grid-column: span 2;
+    }
+
+    .info-label {
+      font-size: 12px;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+
+    .info-value {
+      font-size: 16px;
+      color: #000;
+    }
+
+    .info-value.bold {
+      font-weight: bold;
+    }
+
+    .info-value.small {
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      margin-top: 8px;
+    }
+
+    .status-available {
+      background-color: #059669;
+    }
+
+    .status-unavailable {
+      background-color: #6b7280;
+    }
+
+    .detail-view {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #1f2937;
+      z-index: 100;
+      overflow-y: auto;
+    }
+
+    .detail-container {
+      max-width: 448px;
+      margin: 0 auto;
+      min-height: 100vh;
+    }
+
+    .detail-header {
+      background-color: #fff;
+      border-bottom: 1px solid #d1d5db;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .detail-header-inner {
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .back-button {
+      padding: 8px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .back-button:hover {
+      background-color: #f3f4f6;
+    }
+
+    .detail-header h2 {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .detail-content {
+      background-color: #fff;
+      margin: 16px;
+    }
+
+    .detail-image {
+      width: 100%;
+      height: 250px;
+      object-fit: cover;
+      background-color: #f3f4f6;
+    }
+
+    .detail-info {
+      padding: 24px;
+    }
+
+    .detail-title {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 16px;
+    }
+
+    .detail-info-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .detail-info-item {
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 12px;
+    }
+
+    .detail-info-label {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 4px;
+    }
+
+    .detail-info-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: #000;
+    }
+
+    .contact-button {
+      width: 100%;
+      background-color: #22c55e;
+      color: #fff;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      margin-top: 24px;
+      transition: background-color 0.2s;
+    }
+
+    .contact-button:hover {
+      background-color: #16a34a;
+    }
+
+    .contact-button:disabled {
+      background-color: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
   </style>
 </head>
 <body>
