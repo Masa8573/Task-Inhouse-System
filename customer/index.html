@@ -455,7 +455,7 @@
       
       container.innerHTML = html;
     }
-
+    
     function showDetail(id) {
       const vehicle = vehicles.find(v => v.id === id);
       if (!vehicle) return;
@@ -488,7 +488,7 @@
           }
         </div>
       `;
-
+    
       document.getElementById('detailContent').innerHTML = html;
       document.getElementById('listView').classList.add('hidden');
       document.getElementById('detailView').classList.remove('hidden');
