@@ -377,30 +377,47 @@
       const loadingContainer = document.getElementById('loadingContainer');
       const errorContainer = document.getElementById('errorContainer');
       const vehicleList = document.getElementById('vehicleList');
-
+    
       // UIリセット
       loadingContainer.classList.remove('hidden');
       errorContainer.classList.add('hidden');
       vehicleList.classList.add('hidden');
-
+    
       // GASへリクエスト（role=clientを指定）
       fetch(GAS_API_URL + '?role=client')
         .then(response => {
+          console.log('Response status:', response.status);
+          console.log('Response ok:', response.ok);
           if (!response.ok) {
             throw new Error('Network response was not ok');
           }
           return response.json();
         })
         .then(data => {
+          console.log('受信データ:', data);
+          console.log('データ型:', typeof data);
+          console.log('配列かどうか:', Array.isArray(data));
+          console.log('データ件数:', data ? data.length : 'null');
+          
           // GASから返ってきた配列データをそのまま使用
           vehicles = data;
           
-          if (Array.isArray(vehicles) && vehicles.length > 0) {
-            renderVehicleList();
-            loadingContainer.classList.add('hidden');
-            vehicleList.classList.remove('hidden');
+          // ★★★ ここの条件を詳しくチェック ★★★
+          if (Array.isArray(vehicles)) {
+            console.log('✓ 配列です');
+            if (vehicles.length > 0) {
+              console.log('✓ データが存在します');
+              renderVehicleList();
+              loadingContainer.classList.add('hidden');
+              vehicleList.classList.remove('hidden');
+            } else {
+              console.error('✗ 配列が空です');
+              throw new Error('車両データが0件です。スプレッドシートにデータがあるか確認してください。');
+            }
           } else {
-            throw new Error('車両データが見つかりませんでした');
+            console.error('✗ 配列ではありません');
+            console.log('実際のデータ:', vehicles);
+            throw new Error('データ形式が不正です。配列ではありません。');
           }
         })
         .catch(error => {
