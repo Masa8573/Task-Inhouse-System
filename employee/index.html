@@ -281,10 +281,12 @@
       
       employeeVehicles.forEach(function(vehicle) {
         var statusClass = '';
-        if (vehicle.status === '待機中') statusClass = 'status-available';
-        else if (vehicle.status === '使用中') statusClass = 'status-in-use';
-        else if (vehicle.status === '修理中') statusClass = 'status-repair';
-        else statusClass = 'status-retired';
+        // 実際のステータス値に応じて色分け
+        if (vehicle.status === '販売可') statusClass = 'status-available';
+        else if (vehicle.status === '貸出中') statusClass = 'status-in-use';
+        else if (vehicle.status === '修理中' || vehicle.status === '要修理') statusClass = 'status-repair';
+        else if (vehicle.status === '廃車') statusClass = 'status-retired';
+        else statusClass = 'status-in-use'; // その他・代車など
         
         html += '<tr onclick="showDetail(' + vehicle.id + ')">';
         html += '<td style="font-weight: 500;">' + vehicle.plateNumber + '</td>';
