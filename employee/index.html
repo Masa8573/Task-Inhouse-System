@@ -303,17 +303,34 @@
       tbody.innerHTML = html;
     }
 
+    // showDetail関数を修正
     function showDetail(id) {
       var vehicle = employeeVehicles.find(v => v.id === id);
       if (!vehicle) return;
       
       var statusClass = '';
-      if (vehicle.status === '待機中') statusClass = 'status-available';
-      else if (vehicle.status === '使用中') statusClass = 'status-in-use';
-      else if (vehicle.status === '修理中') statusClass = 'status-repair';
-      else statusClass = 'status-retired';
-
+      if (vehicle.status === '販売可') statusClass = 'status-available';
+      else if (vehicle.status === '貸出中') statusClass = 'status-in-use';
+      else if (vehicle.status === '修理中' || vehicle.status === '要修理') statusClass = 'status-repair';
+      else if (vehicle.status === '廃車') statusClass = 'status-retired';
+      else statusClass = 'status-in-use';
+    
+      // ★全ての画像を表示★
+      let imagesHtml = '';
+      if (vehicle.images && vehicle.images.length > 0) {
+        imagesHtml = '<div style="margin-bottom: 24px;">';
+        imagesHtml += '<div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">車両画像 (' + vehicle.images.length + '枚)</div>';
+        imagesHtml += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">';
+        
+        vehicle.images.forEach(function(imageUrl, index) {
+          imagesHtml += '<img src="' + imageUrl + '" alt="' + vehicle.model + ' ' + (index + 1) + '" style="width: 100%; height: 150px; object-fit: cover; border-radius: 4px; cursor: pointer;" onclick="window.open(\'' + imageUrl.replace('w800', 'w2000') + '\', \'_blank\')">';
+        });
+        
+        imagesHtml += '</div></div>';
+      }
+    
       var html = `
+        ${imagesHtml}
         <div class="detail-title-section">
           <h3>${vehicle.model}</h3>
           <span class="status-badge ${statusClass}">${vehicle.status}</span>
@@ -329,7 +346,7 @@
           <div style="padding-top: 8px;"><div class="detail-info-label">車両ID</div><div class="detail-info-value">#${String('0000' + vehicle.id).slice(-4)}</div></div>
         </div>
       `;
-
+    
       document.getElementById('detailContent').innerHTML = html;
       document.getElementById('listView').classList.add('hidden');
       document.getElementById('detailView').classList.remove('hidden');
