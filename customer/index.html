@@ -428,6 +428,7 @@
         });
     }
 
+    // renderVehicleList関数を修正
     function renderVehicleList() {
       const container = document.getElementById('vehicleList');
       let html = '';
@@ -444,10 +445,13 @@
         const cardClass = isAvailable ? 'vehicle-card' : 'vehicle-card unavailable';
         const statusClass = isAvailable ? 'status-available' : 'status-unavailable';
         
+        // ★最初の画像を表示★
+        const firstImage = vehicle.images && vehicle.images.length > 0 ? vehicle.images[0] : 'https://placehold.co/400x300/e5e7eb/6b7280?text=No+Image';
+        
         html += `
           <div class="${cardClass}" onclick="showDetail(${vehicle.id})">
             <div class="vehicle-card-inner">
-              <img src="${vehicle.image}" alt="${vehicle.model}" class="vehicle-image">
+              <img src="${firstImage}" alt="${vehicle.model}" class="vehicle-image">
               <div class="vehicle-card-content">
                 <h2>${vehicle.model}</h2>
                 <div class="vehicle-info-grid">
@@ -473,6 +477,7 @@
       container.innerHTML = html;
     }
     
+    // showDetail関数を修正
     function showDetail(id) {
       const vehicle = vehicles.find(v => v.id === id);
       if (!vehicle) return;
@@ -480,9 +485,19 @@
       const isAvailable = vehicle.status === '貸出可';
       const statusClass = isAvailable ? 'status-available' : 'status-unavailable';
       
+      // ★全ての画像を表示★
+      let imagesHtml = '';
+      if (vehicle.images && vehicle.images.length > 0) {
+        vehicle.images.forEach((imageUrl, index) => {
+          imagesHtml += `<img src="${imageUrl}" alt="${vehicle.model} ${index + 1}" class="detail-image">`;
+        });
+      } else {
+        imagesHtml = '<img src="https://placehold.co/400x300/e5e7eb/6b7280?text=No+Image" alt="No Image" class="detail-image">';
+      }
+      
       // 詳細画面のHTML生成
       const html = `
-        <img src="${vehicle.image}" alt="${vehicle.model}" class="detail-image">
+        ${imagesHtml}
         <div class="detail-info">
           <h1 class="detail-title">${vehicle.model}</h1>
           <div class="detail-info-list">
