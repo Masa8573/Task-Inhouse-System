@@ -107,18 +107,21 @@
       bottom: 0;
       background-color: #f3f4f6;
       z-index: 100;
+      overflow-y: auto;
     }
 
     .detail-container {
       max-width: 896px;
       margin: 0 auto;
-      height: 100%;
-      overflow-y: auto;
+      min-height: 100vh;
     }
 
     .detail-header {
       background-color: #fff;
       border-bottom: 1px solid #d1d5db;
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
 
     .detail-header-inner {
@@ -194,6 +197,48 @@
       font-weight: 600;
     }
 
+    /* ★画像表示用のスタイル追加★ */
+    .images-section {
+      margin-bottom: 24px;
+    }
+
+    .images-section-title {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .images-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    .images-grid img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: transform 0.2s;
+      border: 2px solid #e5e7eb;
+    }
+
+    .images-grid img:hover {
+      transform: scale(1.05);
+      border-color: #000;
+    }
+
+    .no-images {
+      color: #9ca3af;
+      font-size: 14px;
+      padding: 20px;
+      text-align: center;
+      background-color: #f9fafb;
+      border-radius: 4px;
+    }
+
     .hidden {
       display: none;
     }
@@ -261,6 +306,7 @@
       fetch(GAS_API_URL + '?role=employee')
         .then(response => response.json())
         .then(data => {
+          console.log('取得データ:', data);
           employeeVehicles = data;
           renderEmployeeView();
         })
@@ -303,10 +349,11 @@
       tbody.innerHTML = html;
     }
 
-    // showDetail関数を修正
     function showDetail(id) {
       var vehicle = employeeVehicles.find(v => v.id === id);
       if (!vehicle) return;
+      
+      console.log('詳細表示する車両:', vehicle);
       
       var statusClass = '';
       if (vehicle.status === '販売可') statusClass = 'status-available';
@@ -314,23 +361,26 @@
       else if (vehicle.status === '修理中' || vehicle.status === '要修理') statusClass = 'status-repair';
       else if (vehicle.status === '廃車') statusClass = 'status-retired';
       else statusClass = 'status-in-use';
-    
+
       // ★全ての画像を表示★
-      let imagesHtml = '';
+      var imagesHtml = '';
       if (vehicle.images && vehicle.images.length > 0) {
-        imagesHtml = '<div style="margin-bottom: 24px;">';
-        imagesHtml += '<div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">車両画像 (' + vehicle.images.length + '枚)</div>';
-        imagesHtml += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">';
+        imagesHtml = '<div class="images-section">';
+        imagesHtml += '<div class="images-section-title">車両画像 (' + vehicle.images.length + '枚)</div>';
+        imagesHtml += '<div class="images-grid">';
         
         vehicle.images.forEach(function(imageUrl, index) {
-          imagesHtml += '<img src="' + imageUrl + '" alt="' + vehicle.model + ' ' + (index + 1) + '" style="width: 100%; height: 150px; object-fit: cover; border-radius: 4px; cursor: pointer;" onclick="window.open(\'' + imageUrl.replace('w800', 'w2000') + '\', \'_blank\')">';
+          // クリックで大きい画像を新しいタブで開く
+          var largeImageUrl = imageUrl.replace('w800', 'w2000');
+          imagesHtml += '<img src="' + imageUrl + '" alt="' + vehicle.model + ' ' + (index + 1) + '" onclick="window.open(\'' + largeImageUrl + '\', \'_blank\')" title="クリックで拡大">';
         });
         
         imagesHtml += '</div></div>';
+      } else {
+        imagesHtml = '<div class="images-section"><div class="images-section-title">車両画像</div><div class="no-images">画像がアップロードされていません</div></div>';
       }
-    
-      var html = `
-        ${imagesHtml}
+
+      var html = imagesHtml + `
         <div class="detail-title-section">
           <h3>${vehicle.model}</h3>
           <span class="status-badge ${statusClass}">${vehicle.status}</span>
@@ -346,7 +396,7 @@
           <div style="padding-top: 8px;"><div class="detail-info-label">車両ID</div><div class="detail-info-value">#${String('0000' + vehicle.id).slice(-4)}</div></div>
         </div>
       `;
-    
+
       document.getElementById('detailContent').innerHTML = html;
       document.getElementById('listView').classList.add('hidden');
       document.getElementById('detailView').classList.remove('hidden');
