@@ -258,11 +258,68 @@
       margin: 16px;
     }
 
-    .detail-image {
-      width: 100%;
-      height: 250px;
-      object-fit: cover;
+    /* ★★★ 画像ギャラリーのスタイル ★★★ */
+    .image-gallery {
+      position: relative;
       background-color: #f3f4f6;
+    }
+
+    .main-image-container {
+      position: relative;
+      width: 100%;
+      height: 300px;
+      background-color: #000;
+    }
+
+    .main-image {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background-color: #000;
+    }
+
+    .image-counter {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .thumbnail-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      padding: 12px;
+      background-color: #f9fafb;
+    }
+
+    .thumbnail {
+      aspect-ratio: 1;
+      border: 2px solid transparent;
+      border-radius: 4px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .thumbnail:hover {
+      transform: scale(1.05);
+    }
+
+    .thumbnail.active {
+      border-color: #000;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .thumbnail img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .detail-info {
@@ -334,7 +391,7 @@
   <div id="listView" class="customer-container">
     <div class="customer-header">
       <h1>CORPORATE CAR RENTAL</h1>
-      <p>法人向け高級車両レンタルサービス</p>
+      <p>法人向け車両レンタルサービス</p>
     </div>
 
     <div id="loadingContainer" class="loading-container">
@@ -362,184 +419,192 @@
           <h2>車両詳細</h2>
         </div>
       </div>
-
       <div class="detail-content" id="detailContent"></div>
     </div>
   </div>
 
   <script>
-    // ★★★ MakeのWebhook URLをここに設定してください ★★★
-    var MAKE_WEBHOOK_URL = 'https://hook.us1.make.com/your-webhook-url-here';
+    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwhuVd91JbmhoIfnNSXCd9tj07xYoio5MvKtv51nG6NmtCS-w9I5tjrn_mONapj5s6GJA/exec';
     
-    var vehicles = [];
+    let vehicles = [];
+    let currentImageIndex = 0;
 
     function fetchVehicleData() {
-      document.getElementById('loadingContainer').classList.remove('hidden');
-      document.getElementById('errorContainer').classList.add('hidden');
-      document.getElementById('vehicleList').classList.add('hidden');
-
-      fetch(MAKE_WEBHOOK_URL, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      .then(function(response) {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then(function(data) {
-        // Makeからのレスポンスデータを想定
-        // データ構造例:
-        // {
-        //   "vehicles": [
-        //     {
-        //       "id": 1,
-        //       "model": "トヨタ アルファード",
-        //       "price": "150,000円/月",
-        //       "area": "東京23区、神奈川全域",
-        //       "status": "貸出可",
-        //       "image": "https://example.com/image.jpg"
-        //     },
-        //     ...
-        //   ]
-        // }
-        
-        if (data && data.vehicles && Array.isArray(data.vehicles)) {
-          vehicles = data.vehicles;
-          renderVehicleList();
-          document.getElementById('loadingContainer').classList.add('hidden');
-          document.getElementById('vehicleList').classList.remove('hidden');
-        } else {
-          throw new Error('Invalid data format');
-        }
-      })
-      .catch(function(error) {
-        console.error('Error fetching data:', error);
-        document.getElementById('loadingContainer').classList.add('hidden');
-        document.getElementById('errorContainer').classList.remove('hidden');
-        document.getElementById('errorMessage').textContent = 'データの読み込みに失敗しました: ' + error.message;
-      });
+      const loadingContainer = document.getElementById('loadingContainer');
+      const errorContainer = document.getElementById('errorContainer');
+      const vehicleList = document.getElementById('vehicleList');
+    
+      loadingContainer.classList.remove('hidden');
+      errorContainer.classList.add('hidden');
+      vehicleList.classList.add('hidden');
+    
+      fetch(GAS_API_URL + '?role=client')
+        .then(response => {
+          if (!response.ok) throw new Error('Network response was not ok');
+          return response.json();
+        })
+        .then(data => {
+          vehicles = data;
+          
+          if (Array.isArray(vehicles) && vehicles.length > 0) {
+            renderVehicleList();
+            loadingContainer.classList.add('hidden');
+            vehicleList.classList.remove('hidden');
+          } else {
+            throw new Error('車両データが0件です');
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching data:', error);
+          loadingContainer.classList.add('hidden');
+          errorContainer.classList.remove('hidden');
+          document.getElementById('errorMessage').textContent = 'データの読み込みに失敗しました: ' + error.message;
+        });
     }
 
     function renderVehicleList() {
-      var container = document.getElementById('vehicleList');
-      var html = '';
+      const container = document.getElementById('vehicleList');
+      let html = '';
       
-      // ステータスで並び替え: 貸出可を上に
-      var sortedVehicles = vehicles.slice().sort(function(a, b) {
+      const sortedVehicles = vehicles.slice().sort((a, b) => {
         if (a.status === '貸出可' && b.status !== '貸出可') return -1;
         if (a.status !== '貸出可' && b.status === '貸出可') return 1;
         return 0;
       });
       
-      for (var i = 0; i < sortedVehicles.length; i++) {
-        var vehicle = sortedVehicles[i];
-        var isAvailable = vehicle.status === '貸出可';
-        var cardClass = isAvailable ? 'vehicle-card' : 'vehicle-card unavailable';
-        var statusClass = isAvailable ? 'status-available' : 'status-unavailable';
-        var statusText = isAvailable ? '貸出可' : vehicle.status;
+      sortedVehicles.forEach(vehicle => {
+        const isAvailable = vehicle.status === '貸出可';
+        const cardClass = isAvailable ? 'vehicle-card' : 'vehicle-card unavailable';
+        const statusClass = isAvailable ? 'status-available' : 'status-unavailable';
+        const firstImage = vehicle.images && vehicle.images.length > 0 ? vehicle.images[0] : 'https://placehold.co/400x300/e5e7eb/6b7280?text=No+Image';
         
-        html += '<div class="' + cardClass + '" onclick="showDetail(' + vehicle.id + ')">';
-        html += '<div class="vehicle-card-inner">';
-        
-        if (vehicle.image) {
-          html += '<img src="' + vehicle.image + '" alt="' + vehicle.model + '" class="vehicle-image">';
-        } else {
-          html += '<div class="vehicle-image"></div>';
-        }
-        
-        html += '<div class="vehicle-card-content">';
-        html += '<h2>' + vehicle.model + '</h2>';
-        html += '<div class="vehicle-info-grid">';
-        html += '<div class="info-item">';
-        html += '<div class="info-label">価格</div>';
-        html += '<div class="info-value bold">' + vehicle.price + '</div>';
-        html += '</div>';
-        html += '<div class="info-item">';
-        html += '<div class="info-label">ステータス</div>';
-        html += '<div><span class="status-badge ' + statusClass + '">' + statusText + '</span></div>';
-        html += '</div>';
-        html += '</div>';
-        html += '<div class="info-item full-width">';
-        html += '<div class="info-label">対応エリア</div>';
-        html += '<div class="info-value small">' + vehicle.area + '</div>';
-        html += '</div>';
-        html += '</div>';
-        html += '</div>';
-        html += '</div>';
-      }
+        html += `
+          <div class="${cardClass}" onclick="showDetail(${vehicle.id})">
+            <div class="vehicle-card-inner">
+              <img src="${firstImage}" alt="${vehicle.model}" class="vehicle-image">
+              <div class="vehicle-card-content">
+                <h2>${vehicle.model}</h2>
+                <div class="vehicle-info-grid">
+                  <div class="info-item">
+                    <div class="info-label">価格</div>
+                    <div class="info-value bold">${vehicle.price}</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">ステータス</div>
+                    <div><span class="status-badge ${statusClass}">${vehicle.status}</span></div>
+                  </div>
+                </div>
+                <div class="info-item full-width">
+                  <div class="info-label">対応エリア</div>
+                  <div class="info-value small">${vehicle.area}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
       
       container.innerHTML = html;
     }
-
+    
+    // ★★★ 画像ギャラリー機能付き詳細表示 ★★★
     function showDetail(id) {
-      var vehicle = null;
-      for (var i = 0; i < vehicles.length; i++) {
-        if (vehicles[i].id === id) {
-          vehicle = vehicles[i];
-          break;
-        }
-      }
-      
+      const vehicle = vehicles.find(v => v.id === id);
       if (!vehicle) return;
       
-      var isAvailable = vehicle.status === '貸出可';
-      var statusClass = isAvailable ? 'status-available' : 'status-unavailable';
-      var statusText = isAvailable ? '貸出可' : vehicle.status;
-
-      var html = '';
+      currentImageIndex = 0; // リセット
       
-      if (vehicle.image) {
-        html += '<img src="' + vehicle.image + '" alt="' + vehicle.model + '" class="detail-image">';
+      const isAvailable = vehicle.status === '貸出可';
+      const statusClass = isAvailable ? 'status-available' : 'status-unavailable';
+      
+      // 画像ギャラリーHTML生成
+      let galleryHtml = '';
+      if (vehicle.images && vehicle.images.length > 0) {
+        // メイン画像
+        galleryHtml += `
+          <div class="image-gallery">
+            <div class="main-image-container">
+              <img id="mainImage" src="${vehicle.images[0]}" alt="${vehicle.model}" class="main-image">
+              <div class="image-counter">
+                <span id="currentImageNumber">1</span> / ${vehicle.images.length}
+              </div>
+            </div>
+        `;
+        
+        // サムネイルグリッド（2枚以上ある場合のみ表示）
+        if (vehicle.images.length > 1) {
+          galleryHtml += '<div class="thumbnail-container">';
+          vehicle.images.forEach((imageUrl, index) => {
+            const activeClass = index === 0 ? 'active' : '';
+            galleryHtml += `
+              <div class="thumbnail ${activeClass}" onclick="changeImage(${index}, ${vehicle.id})">
+                <img src="${imageUrl}" alt="サムネイル${index + 1}">
+              </div>
+            `;
+          });
+          galleryHtml += '</div>';
+        }
+        
+        galleryHtml += '</div>';
       } else {
-        html += '<div class="detail-image"></div>';
+        galleryHtml = '<img src="https://placehold.co/400x300/e5e7eb/6b7280?text=No+Image" alt="No Image" class="main-image">';
       }
       
-      html += '<div class="detail-info">';
-      html += '<h1 class="detail-title">' + vehicle.model + '</h1>';
-      
-      html += '<div class="detail-info-list">';
-      
-      html += '<div class="detail-info-item">';
-      html += '<div class="detail-info-label">価格</div>';
-      html += '<div class="detail-info-value">' + vehicle.price + '</div>';
-      html += '</div>';
-      
-      html += '<div class="detail-info-item">';
-      html += '<div class="detail-info-label">対応エリア</div>';
-      html += '<div class="detail-info-value">' + vehicle.area + '</div>';
-      html += '</div>';
-      
-      html += '<div class="detail-info-item">';
-      html += '<div class="detail-info-label">ステータス</div>';
-      html += '<div><span class="status-badge ' + statusClass + '">' + statusText + '</span></div>';
-      html += '</div>';
-      
-      html += '</div>';
-      
-      if (isAvailable) {
-        html += '<button class="contact-button" onclick="contactForReservation(\'' + vehicle.model + '\')">LINEで予約する</button>';
-      } else {
-        html += '<button class="contact-button" disabled>現在貸出できません</button>';
-      }
-      
-      html += '</div>';
-
+      const html = `
+        ${galleryHtml}
+        <div class="detail-info">
+          <h1 class="detail-title">${vehicle.model}</h1>
+          <div class="detail-info-list">
+            <div class="detail-info-item">
+              <div class="detail-info-label">価格</div>
+              <div class="detail-info-value">${vehicle.price}</div>
+            </div>
+            <div class="detail-info-item">
+              <div class="detail-info-label">対応エリア</div>
+              <div class="detail-info-value">${vehicle.area}</div>
+            </div>
+            <div class="detail-info-item">
+              <div class="detail-info-label">ステータス</div>
+              <div><span class="status-badge ${statusClass}">${vehicle.status}</span></div>
+            </div>
+          </div>
+          ${isAvailable 
+            ? `<button class="contact-button" onclick="contactForReservation('${vehicle.model}')">LINEで予約する</button>` 
+            : `<button class="contact-button" disabled>現在貸出できません</button>`
+          }
+        </div>
+      `;
+    
       document.getElementById('detailContent').innerHTML = html;
       document.getElementById('listView').classList.add('hidden');
       document.getElementById('detailView').classList.remove('hidden');
     }
 
-    function contactForReservation(model) {
-      var text = '【車両予約希望】\n車種: ' + model + '\n\nこちらの車両の予約を希望します。';
+    // ★★★ 画像切替関数 ★★★
+    function changeImage(index, vehicleId) {
+      const vehicle = vehicles.find(v => v.id === vehicleId);
+      if (!vehicle || !vehicle.images || !vehicle.images[index]) return;
       
-      // LINEアプリで開く（モバイルの場合）
-      // または、クリップボードにコピー
+      // メイン画像を更新
+      document.getElementById('mainImage').src = vehicle.images[index];
+      document.getElementById('currentImageNumber').textContent = index + 1;
+      
+      // サムネイルのactive状態を更新
+      document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
+        if (i === index) {
+          thumb.classList.add('active');
+        } else {
+          thumb.classList.remove('active');
+        }
+      });
+      
+      currentImageIndex = index;
+    }
+
+    function contactForReservation(model) {
+      const text = `【車両予約希望】\n車種: ${model}\n\nこちらの車両の予約を希望します。`;
       if (navigator.clipboard) {
-        navigator.clipboard.writeText(text).then(function() {
+        navigator.clipboard.writeText(text).then(() => {
           alert('予約内容をコピーしました。LINEでメッセージを送信してください。');
         });
       } else {
@@ -547,7 +612,7 @@
       }
     }
 
-    document.getElementById('backButton').addEventListener('click', function() {
+    document.getElementById('backButton').addEventListener('click', () => {
       document.getElementById('detailView').classList.add('hidden');
       document.getElementById('listView').classList.remove('hidden');
     });
