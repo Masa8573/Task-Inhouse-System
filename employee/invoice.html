@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>請求書作成 - 株式会社TASK</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f3f4f6;
+      color: #111;
+    }
+
+    /* ===== レイアウト ===== */
+    .app-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ===== 左パネル（入力フォーム） ===== */
+    .input-panel {
+      width: 380px;
+      flex-shrink: 0;
+      background-color: #fff;
+      border-right: 1px solid #d1d5db;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      max-height: 100vh;
+      position: sticky;
+      top: 0;
+    }
+
+    .panel-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid #e5e7eb;
+      position: sticky;
+      top: 0;
+      background: #fff;
+      z-index: 5;
+    }
+
+    .panel-header-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      color: #6b7280;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: #000; }
+
+    .panel-header h1 {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    /* ===== 保存済みリスト ===== */
+    .saved-section {
+      padding: 12px 20px;
+      border-bottom: 1px solid #e5e7eb;
+      background-color: #f9fafb;
+    }
+
+    .saved-section-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+
+    .saved-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-height: 140px;
+      overflow-y: auto;
+    }
+
+    .saved-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      background-color: #fff;
+      border: 1px solid #e5e7eb;
+      cursor: pointer;
+      transition: background-color 0.15s;
+      font-size: 13px;
+    }
+    .saved-item:hover { background-color: #f3f4f6; }
+
+    .saved-item-name { font-weight: 500; color: #111; }
+    .saved-item-date { font-size: 11px; color: #9ca3af; }
+
+    .saved-item-del {
+      padding: 2px 6px;
+      background: none;
+      border: none;
+      color: #ef4444;
+      cursor: pointer;
+      font-size: 14px;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    .saved-item-del:hover { opacity: 1; }
+
+    .saved-empty { font-size: 13px; color: #9ca3af; }
+
+    /* ===== フォームエリア ===== */
+    .form-area {
+      padding: 20px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .form-section {
+      margin-bottom: 24px;
+    }
+
+    .form-section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+      border-bottom: 2px solid #000;
+      padding-bottom: 4px;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+    }
+
+    .form-group label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #6b7280;
+    }
+
+    .form-group input,
+    .form-group select {
+      padding: 8px 10px;
+      border: 1px solid #d1d5db;
+      font-size: 14px;
+      color: #111;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #000;
+    }
+
+    /* ===== 明細テーブル ===== */
+    .line-items-area {
+      margin-bottom: 10px;
+    }
+
+    .line-item {
+      display: grid;
+      grid-template-columns: 1fr 80px 80px 28px;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .line-item input {
+      padding: 7px 8px;
+      border: 1px solid #d1d5db;
+      font-size: 13px;
+      width: 100%;
+    }
+    .line-item input:focus { outline: none; border-color: #000; }
+
+    .line-item input.text-right { text-align: right; }
+
+    .line-item-del {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      background: none;
+      border: 1px solid #fee2e2;
+      color: #ef4444;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.2s;
+    }
+    .line-item-del:hover { background-color: #fee2e2; }
+
+    .line-item-header {
+      display: grid;
+      grid-template-columns: 1fr 80px 80px 28px;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .line-item-header span {
+      font-size: 11px;
+      font-weight: 600;
+      color: #9ca3af;
+      text-transform: uppercase;
+    }
+
+    .add-line-btn {
+      width: 100%;
+      padding: 8px;
+      border: 1px dashed #d1d5db;
+      background: none;
+      color: #6b7280;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .add-line-btn:hover { border-color: #000; color: #000; }
+
+    /* ===== アクションボタン ===== */
+    .action-buttons {
+      padding: 16px 20px;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 12px;
+      background-color: #000;
+      color: #fff;
+      border: none;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-primary:hover { background-color: #333; }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 10px;
+      background-color: #fff;
+      color: #000;
+      border: 1px solid #d1d5db;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-secondary:hover { border-color: #000; background-color: #f9fafb; }
+
+    /* ===== 右パネル（プレビュー） ===== */
+    .preview-panel {
+      flex: 1;
+      padding: 40px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #e5e7eb;
+    }
+
+    .preview-toolbar {
+      width: 100%;
+      max-width: 794px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .preview-btn {
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s;
+    }
+
+    .preview-btn-print {
+      background-color: #000;
+      color: #fff;
+    }
+    .preview-btn-print:hover { background-color: #333; }
+
+    .edit-mode-hint {
+      font-size: 12px;
+      color: #6b7280;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-right: auto;
+    }
+
+    /* ===== 請求書本体 ===== */
+    .invoice-paper {
+      width: 794px;
+      min-height: 1123px;
+      background-color: #fff;
+      padding: 60px 70px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+      position: relative;
+    }
+
+    /* 編集モード時のハイライト */
+    .invoice-paper [contenteditable="true"]:hover {
+      background-color: #fef3c7;
+      outline: 1px dashed #f59e0b;
+    }
+    .invoice-paper [contenteditable="true"]:focus {
+      background-color: #fffbeb;
+      outline: 2px solid #f59e0b;
+    }
+
+    /* ===== 請求書スタイル ===== */
+    .inv-title {
+      font-size: 28px;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 8px;
+      text-decoration: underline;
+    }
+
+    .inv-date-line {
+      text-align: center;
+      font-size: 14px;
+      margin-bottom: 40px;
+    }
+
+    .inv-partner-section {
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .inv-partner {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .inv-partner-suffix {
+      font-size: 14px;
+      font-weight: normal;
+      margin-left: 4px;
+    }
+
+    .inv-issuer {
+      text-align: right;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .inv-stamp {
+      display: inline-block;
+      border: 2px solid #c00;
+      color: #c00;
+      font-weight: bold;
+      font-size: 11px;
+      padding: 4px 8px;
+      margin-bottom: 8px;
+      font-family: serif;
+      letter-spacing: 0.1em;
+    }
+
+    .inv-amount-section {
+      margin-bottom: 24px;
+      padding: 12px 0;
+      border-top: 1px solid #000;
+      border-bottom: 1px solid #000;
+    }
+
+    .inv-amount-label { font-size: 14px; font-weight: bold; }
+    .inv-amount-value { font-size: 22px; font-weight: bold; }
+
+    .inv-period {
+      font-size: 13px;
+      margin-bottom: 20px;
+      color: #374151;
+    }
+
+    /* ===== 明細テーブル ===== */
+    .inv-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
+
+    .inv-table th {
+      background-color: #000;
+      color: #fff;
+      padding: 8px 10px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .inv-table th:last-child,
+    .inv-table td:last-child {
+      text-align: right;
+    }
+
+    .inv-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .inv-table tr:nth-child(even) td { background-color: #f9fafb; }
+
+    .inv-table-footer td {
+      border-top: 2px solid #000;
+      border-bottom: none;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .inv-tax-row td {
+      font-size: 12px;
+      color: #6b7280;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    /* ===== 振込先 ===== */
+    .inv-bank-section {
+      margin-top: 40px;
+      padding: 16px;
+      border: 1px solid #d1d5db;
+      font-size: 13px;
+      line-height: 2;
+      text-align: center;
+    }
+
+    .inv-bank-title {
+      font-weight: bold;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+
+    .inv-footer {
+      position: absolute;
+      bottom: 40px;
+      left: 70px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    /* ===== 印刷スタイル ===== */
+    @media print {
+      body { background: none; }
+      .input-panel, .preview-toolbar, .edit-mode-hint { display: none !important; }
+      .preview-panel {
+        padding: 0;
+        background: none;
+        align-items: flex-start;
+      }
+      .invoice-paper {
+        box-shadow: none;
+        width: 100%;
+        padding: 20mm 25mm;
+      }
+      .invoice-paper [contenteditable="true"]:hover,
+      .invoice-paper [contenteditable="true"]:focus {
+        background: none !important;
+        outline: none !important;
+      }
+      @page { margin: 0; size: A4; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-layout">
+
+  <!-- ===== 左パネル（入力フォーム） ===== -->
+  <div class="input-panel">
+    <div class="panel-header">
+      <div class="panel-header-top">
+        <a href="index.html" class="back-link">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          車両一覧
+        </a>
+      </div>
+      <h1>請求書作成</h1>
+    </div>
+
+    <!-- 保存済み請求書 -->
+    <div class="saved-section">
+      <div class="saved-section-title">保存済み請求書</div>
+      <div class="saved-list" id="savedList">
+        <div class="saved-empty">保存された請求書はありません</div>
+      </div>
+    </div>
+
+    <div class="form-area">
+
+      <!-- ヘッダー情報 -->
+      <div class="form-section">
+        <div class="form-section-title">基本情報</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>請求日</label>
+            <input type="date" id="invDate">
+          </div>
+          <div class="form-group">
+            <label>支払実行日</label>
+            <input type="date" id="invPaymentDate">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:10px;">
+          <label>取引先名（請求先）</label>
+          <input type="text" id="invPartner" placeholder="例）株式会社〇〇">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>集計期間 開始</label>
+            <input type="date" id="invPeriodStart">
+          </div>
+          <div class="form-group">
+            <label>集計期間 終了</label>
+            <input type="date" id="invPeriodEnd">
+          </div>
+        </div>
+      </div>
+
+      <!-- 明細 -->
+      <div class="form-section">
+        <div class="form-section-title">明細（車両ごと）</div>
+        <div class="line-item-header">
+          <span>車両名・内容</span>
+          <span>数量</span>
+          <span>単価(円)</span>
+          <span></span>
+        </div>
+        <div class="line-items-area" id="lineItemsArea"></div>
+        <button class="add-line-btn" onclick="addLineItem()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          車両を追加
+        </button>
+      </div>
+
+      <!-- 備考 -->
+      <div class="form-section">
+        <div class="form-section-title">備考</div>
+        <div class="form-group">
+          <input type="text" id="invNote" placeholder="任意入力">
+        </div>
+      </div>
+
+    </div><!-- /form-area -->
+
+    <div class="action-buttons">
+      <button class="btn-primary" onclick="saveInvoice()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+        </svg>
+        保存する
+      </button>
+      <button class="btn-secondary" onclick="clearForm()">新規作成（リセット）</button>
+    </div>
+  </div><!-- /input-panel -->
+
+  <!-- ===== 右パネル（プレビュー） ===== -->
+  <div class="preview-panel">
+    <div class="preview-toolbar">
+      <div class="edit-mode-hint">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+        黄色くなる項目はクリックして直接編集できます
+      </div>
+      <button class="preview-btn preview-btn-print" onclick="printInvoice()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+        </svg>
+        PDF印刷
+      </button>
+    </div>
+
+    <!-- 請求書プレビュー本体 -->
+    <div class="invoice-paper" id="invoicePaper">
+
+      <div class="inv-title" contenteditable="true">請求書</div>
+
+      <div class="inv-date-line">
+        請求日&nbsp;&nbsp;<span id="previewDate" contenteditable="true">―</span>
+      </div>
+
+      <div class="inv-partner-section">
+        <div>
+          <div class="inv-partner">
+            <span id="previewPartner" contenteditable="true">（取引先名）</span>
+            <span class="inv-partner-suffix">御中</span>
+          </div>
+        </div>
+        <div class="inv-issuer">
+          <div class="inv-stamp">株式会社<br>TASK</div><br>
+          〒571-0076<br>
+          大阪府門真市大池町34-5<br>
+          ☎05012905476<br>
+          登録番号T5120001226577
+        </div>
+      </div>
+
+      <div class="inv-amount-section">
+        <div class="inv-amount-label">請求金額</div>
+        <div class="inv-amount-value">¥&nbsp;<span id="previewTotalAmount">0</span></div>
+      </div>
+
+      <div class="inv-period">
+        集計期間：<span id="previewPeriodStart" contenteditable="true">―</span>
+        ～
+        <span id="previewPeriodEnd" contenteditable="true">―</span>
+        &nbsp;&nbsp;&nbsp;
+        支払実行日：<span id="previewPaymentDate" contenteditable="true">―</span>
+      </div>
+
+      <!-- 明細テーブル -->
+      <table class="inv-table">
+        <thead>
+          <tr>
+            <th style="width:40%">車両名・内容</th>
+            <th style="width:15%">数量</th>
+            <th style="width:20%">単価</th>
+            <th style="width:25%">金額</th>
+          </tr>
+        </thead>
+        <tbody id="previewTableBody">
+          <tr><td colspan="4" style="color:#9ca3af;text-align:center;padding:20px;">明細を入力してください</td></tr>
+        </tbody>
+        <tfoot>
+          <tr class="inv-tax-row">
+            <td colspan="3" style="text-align:right;">小計</td>
+            <td style="text-align:right;" id="previewSubtotal">¥0</td>
+          </tr>
+          <tr class="inv-tax-row">
+            <td colspan="3" style="text-align:right;">消費税（10%）</td>
+            <td style="text-align:right;" id="previewTax">¥0</td>
+          </tr>
+          <tr class="inv-table-footer">
+            <td colspan="3" style="text-align:right;">合計</td>
+            <td style="text-align:right;" id="previewTotal">¥0</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <!-- 備考 -->
+      <div style="font-size:13px; margin-bottom:8px; color:#6b7280;">
+        備考：<span id="previewNote" contenteditable="true">―</span>
+      </div>
+
+      <!-- 振込先 -->
+      <div class="inv-bank-section">
+        <div class="inv-bank-title">振込先</div>
+        住信SBIネット銀行　法人第一支店<br>
+        普通1419626
+      </div>
+
+      <div class="inv-footer">株式会社TASK</div>
+
+    </div><!-- /invoice-paper -->
+  </div><!-- /preview-panel -->
+
+</div><!-- /app-layout -->
+
+<script>
+  // ===== 状態 =====
+  let lineItems = [];
+  let savedInvoices = [];
+  let currentSavedId = null;
+
+  // ===== 初期化 =====
+  function init() {
+    loadSavedInvoices();
+    addLineItem(); // 最初の1行
+    setTodayDates();
+    bindInputEvents();
+  }
+
+  function setTodayDates() {
+    var today = new Date();
+    var yyyy = today.getFullYear();
+    var mm   = String(today.getMonth() + 1).padStart(2, '0');
+    var dd   = String(today.getDate()).padStart(2, '0');
+    document.getElementById('invDate').value = yyyy + '-' + mm + '-' + dd;
+    updatePreview();
+  }
+
+  function bindInputEvents() {
+    var ids = ['invDate','invPaymentDate','invPartner','invPeriodStart','invPeriodEnd','invNote'];
+    ids.forEach(function(id) {
+      document.getElementById(id).addEventListener('input', updatePreview);
+    });
+  }
+
+  // ===== 明細行 =====
+  var lineItemId = 0;
+
+  function addLineItem(desc, qty, price) {
+    lineItemId++;
+    var id = lineItemId;
+    lineItems.push({ id: id, desc: desc || '', qty: qty || 1, price: price || 0 });
+
+    var row = document.createElement('div');
+    row.className = 'line-item';
+    row.id = 'lineItem_' + id;
+    row.innerHTML =
+      '<input type="text" placeholder="ハイエース 大阪330..." value="' + (desc || '') + '" oninput="updateLineItem(' + id + ',\'desc\',this.value)">' +
+      '<input type="number" class="text-right" min="1" value="' + (qty || 1) + '" oninput="updateLineItem(' + id + ',\'qty\',this.value)">' +
+      '<input type="number" class="text-right" placeholder="0" value="' + (price || '') + '" oninput="updateLineItem(' + id + ',\'price\',this.value)">' +
+      '<button class="line-item-del" onclick="removeLineItem(' + id + ')">×</button>';
+
+    document.getElementById('lineItemsArea').appendChild(row);
+    updatePreview();
+  }
+
+  function updateLineItem(id, field, value) {
+    var item = lineItems.find(function(i) { return i.id === id; });
+    if (!item) return;
+    if (field === 'qty')   item.qty   = parseInt(value) || 1;
+    if (field === 'price') item.price = parseInt(value) || 0;
+    if (field === 'desc')  item.desc  = value;
+    updatePreview();
+  }
+
+  function removeLineItem(id) {
+    lineItems = lineItems.filter(function(i) { return i.id !== id; });
+    var el = document.getElementById('lineItem_' + id);
+    if (el) el.remove();
+    updatePreview();
+  }
+
+  // ===== フォーマット =====
+  function formatDate(dateStr) {
+    if (!dateStr) return '―';
+    var d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日';
+  }
+
+  function formatMoney(n) {
+    return n.toLocaleString('ja-JP');
+  }
+
+  // ===== プレビュー更新 =====
+  function updatePreview() {
+    // ヘッダー
+    document.getElementById('previewDate').textContent        = formatDate(document.getElementById('invDate').value);
+    document.getElementById('previewPartner').textContent     = document.getElementById('invPartner').value || '（取引先名）';
+    document.getElementById('previewPeriodStart').textContent = formatDate(document.getElementById('invPeriodStart').value);
+    document.getElementById('previewPeriodEnd').textContent   = formatDate(document.getElementById('invPeriodEnd').value);
+    document.getElementById('previewPaymentDate').textContent = formatDate(document.getElementById('invPaymentDate').value);
+    document.getElementById('previewNote').textContent        = document.getElementById('invNote').value || '―';
+
+    // 明細
+    var subtotal = 0;
+    var tbody = document.getElementById('previewTableBody');
+
+    if (lineItems.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="color:#9ca3af;text-align:center;padding:20px;">明細を入力してください</td></tr>';
+    } else {
+      var html = '';
+      lineItems.forEach(function(item) {
+        var amount = (item.qty || 0) * (item.price || 0);
+        subtotal += amount;
+        html +=
+          '<tr>' +
+          '<td>' + (item.desc || '―') + '</td>' +
+          '<td style="text-align:right;">' + (item.qty || 1) + '</td>' +
+          '<td style="text-align:right;">¥' + formatMoney(item.price || 0) + '</td>' +
+          '<td style="text-align:right;">¥' + formatMoney(amount) + '</td>' +
+          '</tr>';
+      });
+      tbody.innerHTML = html;
+    }
+
+    var tax   = Math.floor(subtotal * 0.1);
+    var total = subtotal + tax;
+
+    document.getElementById('previewSubtotal').textContent    = '¥' + formatMoney(subtotal);
+    document.getElementById('previewTax').textContent         = '¥' + formatMoney(tax);
+    document.getElementById('previewTotal').textContent       = '¥' + formatMoney(total);
+    document.getElementById('previewTotalAmount').textContent = formatMoney(total);
+  }
+
+  // ===== 保存 =====
+  function saveInvoice() {
+    var partner = document.getElementById('invPartner').value;
+    if (!partner) {
+      alert('取引先名を入力してください');
+      return;
+    }
+
+    var invoice = {
+      id:          currentSavedId || Date.now(),
+      savedAt:     new Date().toISOString(),
+      partner:     partner,
+      date:        document.getElementById('invDate').value,
+      paymentDate: document.getElementById('invPaymentDate').value,
+      periodStart: document.getElementById('invPeriodStart').value,
+      periodEnd:   document.getElementById('invPeriodEnd').value,
+      note:        document.getElementById('invNote').value,
+      lineItems:   JSON.parse(JSON.stringify(lineItems))
+    };
+
+    var existing = savedInvoices.findIndex(function(i) { return i.id === invoice.id; });
+    if (existing >= 0) {
+      savedInvoices[existing] = invoice;
+    } else {
+      savedInvoices.push(invoice);
+    }
+
+    currentSavedId = invoice.id;
+    persistSaved();
+    renderSavedList();
+    alert('保存しました');
+  }
+
+  function persistSaved() {
+    try {
+      localStorage.setItem('task_invoices', JSON.stringify(savedInvoices));
+    } catch(e) {
+      // localStorage使用不可の場合はスキップ
+    }
+  }
+
+  function loadSavedInvoices() {
+    try {
+      var data = localStorage.getItem('task_invoices');
+      if (data) savedInvoices = JSON.parse(data);
+    } catch(e) {
+      savedInvoices = [];
+    }
+    renderSavedList();
+  }
+
+  function renderSavedList() {
+    var container = document.getElementById('savedList');
+    if (savedInvoices.length === 0) {
+      container.innerHTML = '<div class="saved-empty">保存された請求書はありません</div>';
+      return;
+    }
+
+    var html = '';
+    // 新しい順に表示
+    var sorted = savedInvoices.slice().sort(function(a, b) { return b.savedAt.localeCompare(a.savedAt); });
+    sorted.forEach(function(inv) {
+      var d = new Date(inv.savedAt);
+      var dateStr = (d.getMonth() + 1) + '/' + d.getDate() + ' ' + d.getHours() + ':' + String(d.getMinutes()).padStart(2,'0');
+      html +=
+        '<div class="saved-item">' +
+        '<div onclick="loadInvoice(' + inv.id + ')" style="flex:1;min-width:0;">' +
+        '<div class="saved-item-name">' + inv.partner + '</div>' +
+        '<div class="saved-item-date">保存：' + dateStr + '</div>' +
+        '</div>' +
+        '<button class="saved-item-del" onclick="deleteSaved(' + inv.id + ')" title="削除">×</button>' +
+        '</div>';
+    });
+    container.innerHTML = html;
+  }
+
+  function loadInvoice(id) {
+    var inv = savedInvoices.find(function(i) { return i.id === id; });
+    if (!inv) return;
+
+    currentSavedId = inv.id;
+    document.getElementById('invDate').value        = inv.date || '';
+    document.getElementById('invPaymentDate').value = inv.paymentDate || '';
+    document.getElementById('invPartner').value     = inv.partner || '';
+    document.getElementById('invPeriodStart').value = inv.periodStart || '';
+    document.getElementById('invPeriodEnd').value   = inv.periodEnd || '';
+    document.getElementById('invNote').value        = inv.note || '';
+
+    // 明細リセット
+    lineItems = [];
+    document.getElementById('lineItemsArea').innerHTML = '';
+    lineItemId = 0;
+
+    if (inv.lineItems && inv.lineItems.length > 0) {
+      inv.lineItems.forEach(function(item) {
+        addLineItem(item.desc, item.qty, item.price);
+      });
+    } else {
+      addLineItem();
+    }
+
+    updatePreview();
+  }
+
+  function deleteSaved(id) {
+    if (!confirm('この請求書を削除しますか？')) return;
+    savedInvoices = savedInvoices.filter(function(i) { return i.id !== id; });
+    if (currentSavedId === id) currentSavedId = null;
+    persistSaved();
+    renderSavedList();
+  }
+
+  // ===== クリア =====
+  function clearForm() {
+    if (!confirm('入力内容をリセットしますか？')) return;
+    currentSavedId = null;
+    document.getElementById('invDate').value        = '';
+    document.getElementById('invPaymentDate').value = '';
+    document.getElementById('invPartner').value     = '';
+    document.getElementById('invPeriodStart').value = '';
+    document.getElementById('invPeriodEnd').value   = '';
+    document.getElementById('invNote').value        = '';
+    lineItems = [];
+    document.getElementById('lineItemsArea').innerHTML = '';
+    lineItemId = 0;
+    addLineItem();
+    setTodayDates();
+    updatePreview();
+  }
+
+  // ===== 印刷 =====
+  function printInvoice() {
+    window.print();
+  }
+
+  // ===== 起動 =====
+  init();
+</script>
+</body>
+</html>
