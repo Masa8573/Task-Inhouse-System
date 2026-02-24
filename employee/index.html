@@ -353,9 +353,19 @@
   </div>
 
   <script>
-    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbxKRE5MbDjeUz1dRBKJu6bjKFY2nHZb1j52Ll3fxpuyEzJvDcMRO4gMrfLTsEIRtFxSLQ/exec';
+    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwhuVd91JbmhoIfnNSXCd9tj07xYoio5MvKtv51nG6NmtCS-w9I5tjrn_mONapj5s6GJA/exec';
 
     let employeeVehicles = [];
+
+    // ★ 価格フォーマット：数値のみのデータを「〇円/月」形式に変換
+    function formatPrice(price) {
+      if (!price && price !== 0) return '-';
+      const num = Number(String(price).replace(/[^0-9.]/g, ''));
+      if (!isNaN(num) && num > 0) {
+        return num.toLocaleString('ja-JP') + '円/月';
+      }
+      return price || '-';
+    }
 
     function fetchEmployeeData() {
       fetch(GAS_API_URL + '?role=employee')
@@ -387,20 +397,22 @@
 
       employeeVehicles.forEach(function(vehicle) {
         var statusClass = getStatusClass(vehicle.status);
+        // ★ data属性（フィルター用）
         html += '<tr onclick="showDetail(' + vehicle.id + ')"'
           + ' data-area="'   + (vehicle.area   || '') + '"'
           + ' data-owner="'  + (vehicle.owner  || '') + '"'
           + ' data-status="' + (vehicle.status || '') + '"'
           + '>';
-        html += '<td style="font-weight:500;">' + (vehicle.plateNumber   || '-') + '</td>';
-        html += '<td>'                          + (vehicle.chassisNumber || vehicle.model || '-') + '</td>';
+        // ★ 列順：車両ナンバー / 所有者 / 使用者 / 車台番号 / ステータス / 車検満了日 / 保険 / エリア / 価格
+        html += '<td style="font-weight:500;">' + (vehicle.plateNumber    || '-') + '</td>';
+        html += '<td>'                           + (vehicle.owner         || '-') + '</td>';
+        html += '<td>'                           + (vehicle.user          || '-') + '</td>';
+        html += '<td>'                           + (vehicle.chassisNumber || '-') + '</td>';
         html += '<td><span class="status-badge ' + statusClass + '">' + vehicle.status + '</span></td>';
         html += '<td>' + (vehicle.inspection || '-') + '</td>';
         html += '<td>' + (vehicle.insurance  || '-') + '</td>';
-        html += '<td>' + (vehicle.area       || '-') + '</td>';
-        html += '<td>' + (vehicle.owner      || '-') + '</td>';
-        html += '<td>' + (vehicle.user       || '-') + '</td>';  // ★追加
-        html += '<td style="font-weight:600;">' + (vehicle.price || '-') + '</td>';
+        html += '<td>' + (vehicle.area        || '-') + '</td>';
+        html += '<td style="font-weight:600;">' + formatPrice(vehicle.price) + '</td>';
         html += '<td><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#9ca3af"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg></td>';
         html += '</tr>';
       });
@@ -409,7 +421,6 @@
       updateCount(employeeVehicles.length, employeeVehicles.length);
     }
 
-    /* ===== フィルター処理 ===== */
     function applyFilters() {
       var areaVal   = document.getElementById('filterArea').value;
       var ownerVal  = document.getElementById('filterOwner').value;
@@ -419,9 +430,13 @@
       var visibleCount = 0;
 
       rows.forEach(function(row) {
-        var areaMatch   = !areaVal   || row.getAttribute('data-area')   === areaVal;
-        var ownerMatch  = !ownerVal  || row.getAttribute('data-owner')  === ownerVal;
-        var statusMatch = !statusVal || row.getAttribute('data-status') === statusVal;
+        var area   = row.getAttribute('data-area');
+        var owner  = row.getAttribute('data-owner');
+        var status = row.getAttribute('data-status');
+
+        var areaMatch   = !areaVal   || area   === areaVal;
+        var ownerMatch  = !ownerVal  || owner  === ownerVal;
+        var statusMatch = !statusVal || status === statusVal;
 
         if (areaMatch && ownerMatch && statusMatch) {
           row.classList.remove('hidden-row');
@@ -456,13 +471,14 @@
 
     function updateCount(visible, total) {
       var el = document.getElementById('vehicleCount');
-      el.textContent = visible === total
-        ? '全' + total + '台'
-        : total + '台中 ' + visible + '台を表示';
+      if (visible === total) {
+        el.textContent = '全' + total + '台';
+      } else {
+        el.textContent = total + '台中 ' + visible + '台を表示';
+      }
       document.getElementById('filterResult').textContent = '';
     }
 
-    /* ===== 詳細表示 ===== */
     function showDetail(id) {
       var vehicle = employeeVehicles.find(v => v.id === id);
       if (!vehicle) return;
@@ -476,7 +492,7 @@
         imagesHtml += '<div class="images-grid">';
         vehicle.images.forEach(function(imageUrl, index) {
           var largeImageUrl = imageUrl.replace('w800', 'w2000');
-          imagesHtml += '<img src="' + imageUrl + '" alt="' + vehicle.model + ' ' + (index + 1) + '" onclick="window.open(\'' + largeImageUrl + '\', \'_blank\')" title="クリックで拡大">';
+          imagesHtml += '<img src="' + imageUrl + '" alt="' + (vehicle.plateNumber || '') + ' ' + (index + 1) + '" onclick="window.open(\'' + largeImageUrl + '\', \'_blank\')" title="クリックで拡大">';
         });
         imagesHtml += '</div></div>';
       } else {
@@ -487,9 +503,10 @@
         <div class="detail-title-section">
           <h3>${vehicle.plateNumber || vehicle.model}</h3>
           <span class="status-badge ${statusClass}">${vehicle.status}</span>
-          <p>${vehicle.chassisNumber || vehicle.model || ''}</p>
+          <p>${vehicle.chassisNumber || ''}</p>
         </div>
         <div class="detail-info-list">
+          <div class="detail-info-item"><div class="detail-info-label">車両ナンバー</div><div class="detail-info-value">${vehicle.plateNumber || '-'}</div></div>
           <div class="detail-info-item"><div class="detail-info-label">所有者</div><div class="detail-info-value">${vehicle.owner || '-'}</div></div>
           <div class="detail-info-item"><div class="detail-info-label">使用者</div><div class="detail-info-value">${vehicle.user || '-'}</div></div>
           <div class="detail-info-item"><div class="detail-info-label">車台番号</div><div class="detail-info-value">${vehicle.chassisNumber || '-'}</div></div>
@@ -497,7 +514,7 @@
           <div class="detail-info-item"><div class="detail-info-label">車検満了日</div><div class="detail-info-value">${vehicle.inspection || '-'}</div></div>
           <div class="detail-info-item"><div class="detail-info-label">保険</div><div class="detail-info-value">${vehicle.insurance || '-'}</div></div>
           <div class="detail-info-item"><div class="detail-info-label">エリア</div><div class="detail-info-value">${vehicle.area || '-'}</div></div>
-          <div class="detail-info-item"><div class="detail-info-label">価格</div><div class="detail-info-value">${vehicle.price || '-'}</div></div>
+          <div class="detail-info-item"><div class="detail-info-label">価格</div><div class="detail-info-value">${formatPrice(vehicle.price)}</div></div>
           <div style="padding-top:8px;"><div class="detail-info-label">車両ID</div><div class="detail-info-value">#${String('0000' + vehicle.id).slice(-4)}</div></div>
         </div>
       `;
