@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>請求書作成 - 株式会社TASK</title>
   <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
     :root {
       --black:#111; --white:#fff; --g1:#f3f4f6; --g2:#e5e7eb; --g3:#d1d5db;
       --g4:#9ca3af; --g5:#6b7280; --accent:#f59e0b; --red:#ef4444; --red-bg:#fee2e2;
     }
-    html, body { height: 100%; overflow: hidden; }
-    body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif; background:var(--g1); color:var(--black); font-size:15px; line-height:1.5; -webkit-text-size-adjust:100%; }
+    html, body { height:100%; overflow:hidden; }
+    body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif; background:var(--g1); color:var(--black); font-size:15px; line-height:1.5; -webkit-text-size-adjust:100%; }
 
-    /* ── TOPBAR ── */
+    /* TOPBAR */
     .topbar { position:fixed; top:0; left:0; right:0; height:52px; background:var(--black); color:var(--white); display:flex; align-items:center; justify-content:space-between; padding:0 16px; z-index:400; gap:12px; }
     .topbar-left { display:flex; align-items:center; gap:10px; min-width:0; }
     .topbar-home { display:flex; align-items:center; gap:5px; color:var(--g4); text-decoration:none; font-size:13px; flex-shrink:0; padding:6px 0; transition:color .2s; }
@@ -22,7 +22,7 @@
     .topbar-sep { color:var(--g5); font-size:13px; flex-shrink:0; }
     .topbar h1 { font-size:15px; font-weight:700; color:var(--white); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .topbar-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
-    .topbar-btn { padding:7px 14px; border:none; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px; border-radius:4px; -webkit-tap-highlight-color:transparent; white-space:nowrap; }
+    .topbar-btn { padding:7px 14px; border:none; font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px; border-radius:4px; white-space:nowrap; }
     .topbar-btn svg { width:14px; height:14px; }
     .btn-save  { background:var(--white); color:var(--black); }
     .btn-save:hover  { background:var(--g2); }
@@ -30,20 +30,20 @@
     .btn-print:hover { background:#1e40af; }
     @media(max-width:480px) { .topbar-btn .btn-label { display:none; } .topbar-btn { padding:7px 10px; } }
 
-    /* ── TABS ── */
+    /* TABS */
     .tabs { position:fixed; top:52px; left:0; right:0; display:flex; background:var(--white); border-bottom:2px solid var(--g2); z-index:300; }
-    .tab-btn { flex:1; padding:11px 8px; border:none; background:none; font-size:13px; font-weight:600; color:var(--g5); cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; border-bottom:3px solid transparent; margin-bottom:-2px; transition:color .15s,border-color .15s; -webkit-tap-highlight-color:transparent; }
+    .tab-btn { flex:1; padding:11px 8px; border:none; background:none; font-size:13px; font-weight:600; color:var(--g5); cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; border-bottom:3px solid transparent; margin-bottom:-2px; transition:color .15s,border-color .15s; }
     .tab-btn svg { width:15px; height:15px; }
     .tab-btn.active { color:var(--black); border-bottom-color:var(--black); }
     @media(min-width:768px) { .tabs { display:none; } }
 
-    /* ── LAYOUT ── */
+    /* LAYOUT */
     .main { position:fixed; top:52px; left:0; right:0; bottom:0; display:flex; }
     @media(max-width:767px) { .main { top:96px; } }
 
-    /* ── LEFT PANEL ── */
+    /* LEFT PANEL */
     .panel-input { width:420px; flex-shrink:0; display:flex; flex-direction:column; background:var(--white); border-right:1px solid var(--g2); overflow:hidden; }
-    @media(max-width:767px) { .panel-input { width:100%; } .panel-input.hidden-mobile { display:none; } .panel-preview.hidden-mobile { display:none; } }
+    @media(max-width:767px) { .panel-input { width:100%; } }
 
     /* 保存済み */
     .saved-bar { background:#f9fafb; border-bottom:1px solid var(--g2); padding:10px 16px; flex-shrink:0; }
@@ -51,7 +51,6 @@
     .saved-list { display:flex; flex-direction:column; gap:4px; max-height:110px; overflow-y:auto; }
     .saved-item { display:flex; align-items:center; gap:8px; padding:7px 10px; background:var(--white); border:1px solid var(--g2); border-radius:4px; font-size:13px; }
     .saved-item-body { flex:1; min-width:0; cursor:pointer; }
-    .saved-item-body:active { opacity:.7; }
     .saved-name { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .saved-date { font-size:11px; color:var(--g4); }
     .saved-del { flex-shrink:0; width:30px; height:30px; display:flex; align-items:center; justify-content:center; background:none; border:1px solid var(--red-bg); color:var(--red); cursor:pointer; font-size:15px; border-radius:4px; }
@@ -64,10 +63,10 @@
     .form-row { display:flex; gap:8px; margin-bottom:8px; }
     .fg { display:flex; flex-direction:column; gap:4px; flex:1; min-width:0; }
     .fg label { font-size:11px; font-weight:700; color:var(--g5); letter-spacing:.03em; }
-    .fg input, .fg select { padding:10px 12px; border:1.5px solid var(--g3); font-size:15px; color:var(--black); width:100%; border-radius:6px; -webkit-appearance:none; background:var(--white); transition:border-color .2s; }
+    .fg input, .fg select { padding:10px 12px; border:1.5px solid var(--g3); font-size:14px; color:var(--black); width:100%; border-radius:6px; -webkit-appearance:none; background:var(--white); }
     .fg input:focus, .fg select:focus { outline:none; border-color:var(--black); }
 
-    /* ── SUGGEST ── */
+    /* SUGGEST */
     .suggest-wrap { position:relative; }
     .suggest-dropdown { position:absolute; top:100%; left:0; right:0; background:var(--white); border:1.5px solid var(--black); border-top:none; border-radius:0 0 6px 6px; max-height:200px; overflow-y:auto; z-index:500; display:none; box-shadow:0 4px 12px rgba(0,0,0,.1); }
     .suggest-dropdown.open { display:block; }
@@ -83,67 +82,44 @@
     .s-repair    { background:#fee2e2; color:#991b1b; }
     .s-other     { background:var(--g2); color:var(--g5); }
 
-    /* ── LINE ITEMS ── */
-    /* 入力グリッド: 月日 | 内容(select+text) | 数量 | 単価 | 備考 | 削除 */
-    .li-header { display:grid; grid-template-columns:70px 1fr 50px 80px 1fr 32px; gap:4px; margin-bottom:4px; padding:0 2px; }
+    /* LINE ITEMS - グリッド: 月日 | 内容(select+text) | 数量 | 単価 | 備考 | 削除 */
+    .li-header { display:grid; grid-template-columns:70px 1fr 50px 80px 1fr 34px; gap:4px; margin-bottom:4px; padding:0 2px; }
     .li-header span { font-size:10px; font-weight:700; color:var(--g4); text-transform:uppercase; letter-spacing:.04em; }
     .li-area { margin-bottom:8px; }
-
-    .li-row {
-      display:grid;
-      grid-template-columns:70px 1fr 50px 80px 1fr 32px;
-      gap:4px;
-      align-items:start;
-      margin-bottom:6px;
-      background:#f9fafb;
-      border:1px solid var(--g2);
-      border-radius:6px;
-      padding:8px;
-    }
-    .li-row input, .li-row select {
-      padding:8px 6px;
-      border:1.5px solid var(--g3);
-      font-size:13px;
-      width:100%;
-      border-radius:4px;
-      -webkit-appearance:none;
-      background:var(--white);
-    }
+    .li-row { display:grid; grid-template-columns:70px 1fr 50px 80px 1fr 34px; gap:4px; align-items:start; margin-bottom:6px; background:#f9fafb; border:1px solid var(--g2); border-radius:6px; padding:8px; }
+    .li-row input, .li-row select { padding:8px 6px; border:1.5px solid var(--g3); font-size:13px; width:100%; border-radius:4px; -webkit-appearance:none; background:var(--white); }
     .li-row input:focus, .li-row select:focus { outline:none; border-color:var(--black); }
     .li-row input.tr { text-align:right; }
     .li-content-wrap { display:flex; flex-direction:column; gap:3px; min-width:0; }
-    .li-del { display:flex; align-items:center; justify-content:center; width:32px; height:32px; background:none; border:1.5px solid var(--red-bg); color:var(--red); cursor:pointer; font-size:16px; border-radius:4px; flex-shrink:0; margin-top:1px; }
+    .li-del { display:flex; align-items:center; justify-content:center; width:34px; height:34px; background:none; border:1.5px solid var(--red-bg); color:var(--red); cursor:pointer; font-size:16px; border-radius:4px; flex-shrink:0; }
     .li-del:hover { background:var(--red-bg); }
-    .li-status-hint { grid-column:1/-1; font-size:11px; color:var(--g5); padding:1px 2px 0; }
-
+    .li-hint { grid-column:1/-1; font-size:11px; color:var(--g5); padding-top:2px; }
     .add-li-btn { width:100%; padding:11px; border:1.5px dashed var(--g3); background:none; color:var(--g5); font-size:14px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; border-radius:6px; }
     .add-li-btn:hover { border-color:var(--black); color:var(--black); }
 
-    /* ── RIGHT PANEL ── */
+    /* RIGHT PANEL */
     .panel-preview { flex:1; display:flex; flex-direction:column; background:#cbd5e1; overflow:hidden; }
     @media(max-width:767px) { .panel-preview { width:100%; } }
-    .preview-inner { flex:1; overflow-y:auto; padding:24px 20px 40px; -webkit-overflow-scrolling:touch; display:flex; flex-direction:column; align-items:center; }
+    .preview-inner { flex:1; overflow-y:auto; padding:24px 20px 40px; display:flex; flex-direction:column; align-items:center; }
     .preview-hint { font-size:11px; color:#475569; display:flex; align-items:center; gap:4px; margin-bottom:14px; align-self:flex-start; }
-    .preview-hint svg { width:12px; height:12px; }
 
-    /* ── INVOICE SCALE ── */
+    /* INVOICE SCALE */
     .inv-scale-wrap { width:100%; max-width:794px; overflow:hidden; }
     .inv-scale-inner { transform-origin:top left; width:794px; }
 
-    /* ── INVOICE PAPER ── */
+    /* INVOICE PAPER */
     .inv-paper { width:794px; min-height:1123px; background:var(--white); padding:48px 56px; box-shadow:0 4px 24px rgba(0,0,0,.18); position:relative; font-size:13px; }
-    .inv-paper [contenteditable="true"] { border-radius:2px; display:inline-block; min-width:16px; transition:background .15s; }
+    .inv-paper [contenteditable="true"] { border-radius:2px; display:inline-block; min-width:16px; }
     .inv-paper [contenteditable="true"]:hover { background:#fef3c7; outline:1px dashed var(--accent); }
     .inv-paper [contenteditable="true"]:focus  { background:#fffbeb; outline:2px solid var(--accent); }
 
-    .inv-title { font-size:26px; font-weight:700; text-align:center; text-decoration:underline; margin-bottom:6px; }
-    .inv-no { text-align:center; font-size:12px; color:#666; margin-bottom:4px; }
+    /* ★ センター寄せ */
+    .inv-title { font-size:26px; font-weight:700; text-align:center; text-decoration:underline; margin-bottom:12px; display:block; width:100%; }
     .inv-dateline { text-align:center; font-size:13px; margin-bottom:28px; }
     .inv-toprow { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:22px; gap:16px; }
     .inv-partner-name { font-size:20px; font-weight:700; }
     .inv-partner-suffix { font-size:13px; font-weight:400; margin-left:4px; }
     .inv-issuer { text-align:right; font-size:11.5px; line-height:1.85; flex-shrink:0; }
-    /* スタンプ画像 */
     .inv-stamp-img { width:64px; height:64px; object-fit:contain; display:block; margin:0 0 6px auto; }
     .inv-amount-row { border-top:1.5px solid var(--black); border-bottom:1.5px solid var(--black); padding:10px 0; margin-bottom:14px; display:flex; align-items:baseline; gap:16px; }
     .inv-amount-label { font-size:13px; font-weight:700; }
@@ -153,31 +129,24 @@
     /* 明細テーブル */
     .inv-table { width:100%; border-collapse:collapse; margin-bottom:12px; font-size:12px; }
     .inv-table th { background:var(--black); color:var(--white); padding:7px 8px; text-align:left; font-weight:600; }
-    .inv-table th:nth-child(3),
-    .inv-table th:nth-child(4),
-    .inv-table th:nth-child(5),
-    .inv-table td:nth-child(3),
-    .inv-table td:nth-child(4),
-    .inv-table td:nth-child(5) { text-align:right; }
+    .inv-table th.tr, .inv-table td.tr { text-align:right; }
     .inv-table td { padding:7px 8px; border-bottom:1px solid var(--g2); vertical-align:top; }
     .inv-table tr:nth-child(even) td { background:#f9fafb; }
     .inv-table tfoot td { border-bottom:none; }
     .inv-tax-row td   { font-size:11px; color:var(--g5); border-bottom:1px solid var(--g2); }
     .inv-total-row td { border-top:2px solid var(--black) !important; font-weight:700; font-size:13px; }
 
-    .inv-note { font-size:11.5px; color:var(--g5); margin-bottom:20px; }
-    .inv-bank { padding:12px; border:1px solid var(--g3); font-size:12px; line-height:2; text-align:center; margin-bottom:50px; }
+    .inv-note  { font-size:11.5px; color:var(--g5); margin-bottom:20px; }
+    .inv-bank  { padding:12px; border:1px solid var(--g3); font-size:12px; line-height:2; text-align:center; margin-bottom:50px; }
     .inv-bank-title { font-weight:700; font-size:13px; margin-bottom:2px; }
     .inv-footer-co { position:absolute; bottom:36px; left:56px; font-size:12px; font-weight:700; }
 
-    /* ── FOOTER ── */
     .form-footer { padding:12px 16px; border-top:1px solid var(--g2); background:var(--white); flex-shrink:0; }
     .btn-reset { width:100%; padding:11px; background:var(--white); color:var(--g5); border:1.5px solid var(--g3); font-size:14px; font-weight:600; cursor:pointer; border-radius:6px; }
     .btn-reset:hover { border-color:var(--black); color:var(--black); }
 
     .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:#1e293b; color:var(--white); padding:12px 24px; border-radius:8px; font-size:14px; font-weight:600; z-index:999; transition:transform .3s ease; white-space:nowrap; pointer-events:none; }
     .toast.show { transform:translateX(-50%) translateY(0); }
-
     .data-status { font-size:12px; color:var(--g5); display:flex; align-items:center; gap:5px; }
     .spinner { width:12px; height:12px; border:2px solid var(--g3); border-top-color:var(--black); border-radius:50%; animation:spin .7s linear infinite; flex-shrink:0; }
     @keyframes spin { to { transform:rotate(360deg); } }
@@ -197,7 +166,6 @@
 </head>
 <body>
 
-<!-- TOP NAV -->
 <nav class="topbar">
   <div class="topbar-left">
     <a href="index.html" class="topbar-home">
@@ -225,7 +193,6 @@
   </div>
 </nav>
 
-<!-- TABS（モバイル） -->
 <div class="tabs">
   <button class="tab-btn active" data-tab="input" onclick="switchTab('input')">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -243,24 +210,17 @@
 </div>
 
 <div class="main">
-  <!-- 左パネル：入力 -->
   <div class="panel-input" id="panelInput">
-
-    <!-- 保存済み -->
     <div class="saved-bar">
       <div class="saved-bar-title">保存済み請求書</div>
       <div class="saved-list" id="savedList"><div class="saved-empty">保存された請求書はありません</div></div>
     </div>
 
     <div class="form-scroll">
-      <!-- 基本情報 -->
       <div class="form-sec">
         <div class="form-sec-title">基本情報</div>
         <div class="form-row">
-          <div class="fg"><label>No.</label><input type="text" id="invNo" placeholder="例）2025-001"></div>
           <div class="fg"><label>請求日</label><input type="date" id="invDate"></div>
-        </div>
-        <div class="form-row">
           <div class="fg"><label>支払実行日</label><input type="date" id="invPayDate"></div>
         </div>
         <div class="fg" style="margin-bottom:8px;">
@@ -273,13 +233,11 @@
         </div>
       </div>
 
-      <!-- 明細 -->
       <div class="form-sec">
         <div class="form-sec-title">
           明細
           <span id="vehicleLoadStatus" class="data-status" style="display:inline-flex;"></span>
         </div>
-        <!-- ヘッダー -->
         <div class="li-header">
           <span>月日</span>
           <span>内容</span>
@@ -289,7 +247,7 @@
           <span></span>
         </div>
         <div class="li-area" id="liArea"></div>
-        <button class="add-li-btn" onclick="addLineItem()">
+        <button class="add-li-btn" id="addBtn">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
           </svg>
@@ -297,7 +255,6 @@
         </button>
       </div>
 
-      <!-- 備考（請求書全体） -->
       <div class="form-sec">
         <div class="form-sec-title">備考（請求書全体）</div>
         <div class="fg"><input type="text" id="invNote" placeholder="任意入力"></div>
@@ -305,15 +262,14 @@
     </div>
 
     <div class="form-footer">
-      <button class="btn-reset" onclick="clearForm()">＋ 新規作成（リセット）</button>
+      <button class="btn-reset" id="resetBtn">＋ 新規作成（リセット）</button>
     </div>
   </div>
 
-  <!-- 右パネル：プレビュー -->
   <div class="panel-preview" id="panelPreview">
     <div class="preview-inner">
       <div class="preview-hint">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
         </svg>
         黄色い箇所はタップ / クリックで直接編集できます
@@ -323,8 +279,8 @@
         <div class="inv-scale-inner" id="invScaleInner">
           <div class="inv-paper" id="invPaper">
 
+            <!-- ★ センター寄せ -->
             <div class="inv-title" contenteditable="true">請求書</div>
-            <div class="inv-no">No.&nbsp;<span id="pvNo" contenteditable="true">―</span></div>
             <div class="inv-dateline">請求日&nbsp;&nbsp;<span id="pvDate" contenteditable="true">―</span></div>
 
             <div class="inv-toprow">
@@ -349,41 +305,40 @@
 
             <div class="inv-period">
               集計期間：<span id="pvStart" contenteditable="true">―</span>
-              ～
-              <span id="pvEnd" contenteditable="true">―</span>
-              &nbsp;&nbsp;
-              支払実行日：<span id="pvPayDate" contenteditable="true">―</span>
+              ～ <span id="pvEnd" contenteditable="true">―</span>
+              &nbsp;&nbsp;支払実行日：<span id="pvPayDate" contenteditable="true">―</span>
             </div>
 
-            <!-- 明細テーブル -->
+            <!-- ★ No.列追加、ヘッダー7列 -->
             <table class="inv-table">
               <thead>
                 <tr>
-                  <th style="width:10%">月日</th>
-                  <th style="width:28%">内容</th>
-                  <th style="width:9%">数量</th>
-                  <th style="width:16%">単価</th>
-                  <th style="width:16%">金額</th>
-                  <th style="width:21%">備考</th>
+                  <th style="width:6%">No.</th>
+                  <th style="width:9%">月日</th>
+                  <th style="width:26%">内容</th>
+                  <th class="tr" style="width:8%">数量</th>
+                  <th class="tr" style="width:14%">単価</th>
+                  <th class="tr" style="width:14%">金額</th>
+                  <th style="width:23%">備考</th>
                 </tr>
               </thead>
               <tbody id="pvBody">
-                <tr><td colspan="6" style="color:#9ca3af;text-align:center;padding:20px;">明細を入力してください</td></tr>
+                <tr><td colspan="7" style="color:#9ca3af;text-align:center;padding:20px;">明細を入力してください</td></tr>
               </tbody>
               <tfoot>
                 <tr class="inv-tax-row">
-                  <td colspan="4" style="text-align:right;">小計</td>
-                  <td style="text-align:right;" id="pvSubtotal">¥0</td>
+                  <td colspan="5" style="text-align:right;">小計</td>
+                  <td class="tr" id="pvSubtotal">¥0</td>
                   <td></td>
                 </tr>
                 <tr class="inv-tax-row">
-                  <td colspan="4" style="text-align:right;">消費税（10%）</td>
-                  <td style="text-align:right;" id="pvTax">¥0</td>
+                  <td colspan="5" style="text-align:right;">消費税（10%）</td>
+                  <td class="tr" id="pvTax">¥0</td>
                   <td></td>
                 </tr>
                 <tr class="inv-total-row">
-                  <td colspan="4" style="text-align:right;">合計</td>
-                  <td style="text-align:right;" id="pvTotalRow">¥0</td>
+                  <td colspan="5" style="text-align:right;">合計</td>
+                  <td class="tr" id="pvTotalRow">¥0</td>
                   <td></td>
                 </tr>
               </tfoot>
@@ -407,7 +362,10 @@
 <div class="toast" id="toast"></div>
 
 <script>
-var GAS_URL = 'https://script.google.com/macros/s/AKfycbwmkuWmz3EKOZFZyjUfmA5HGoeeBG5k8Gm_5xC2P1RtI3pno5dBLhreB0UDgzlkVb-JhQ/exec';
+// ============================================================
+// 定数・状態
+// ============================================================
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbwhuVd91JbmhoIfnNSXCd9tj07xYoio5MvKtv51nG6NmtCS-w9I5tjrn_mONapj5s6GJA/exec';
 
 var lineItems     = [];
 var savedInvoices = [];
@@ -416,37 +374,39 @@ var liId          = 0;
 var vehicleCache  = [];
 var vehicleLoaded = false;
 
-/* ── 内容プリセット ── */
-var CONTENT_PRESETS = [
-  { value:'車両代',  label:'車両代',   price:0    },
-  { value:'名変',    label:'名変',     price:4000 },
-  { value:'立替',    label:'立替',     price:0    },
-  { value:'修理代',  label:'修理代',   price:0    },
-  { value:'custom',  label:'自由記述', price:0    },
+var PRESETS = [
+  { v:'車両代', l:'車両代',   p:0    },
+  { v:'名変',   l:'名変',     p:4000 },
+  { v:'立替',   l:'立替',     p:0    },
+  { v:'修理代', l:'修理代',   p:0    },
+  { v:'custom', l:'自由記述', p:0    }
 ];
 
+// ============================================================
+// 初期化
+// ============================================================
 function init() {
-  setToday();
+  // イベント登録（onclick属性を使わず addEventListener で確実に）
+  document.getElementById('addBtn').addEventListener('click', function() { addLineItem(); });
+  document.getElementById('resetBtn').addEventListener('click', clearForm);
+
+  ['invDate','invPayDate','invPartner','invStart','invEnd','invNote'].forEach(function(id) {
+    document.getElementById(id).addEventListener('input', updatePreview);
+  });
+
+  var d = new Date();
+  document.getElementById('invDate').value = d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
+
   loadSaved();
   addLineItem();
-  bindFormEvents();
   rescale();
+  updatePreview();
   loadVehicles();
 }
 
-function setToday() {
-  var d = new Date();
-  document.getElementById('invDate').value = d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
-  updatePreview();
-}
-
-function bindFormEvents() {
-  ['invNo','invDate','invPayDate','invPartner','invStart','invEnd','invNote'].forEach(function(id) {
-    document.getElementById(id).addEventListener('input', updatePreview);
-  });
-}
-
-/* ── 車両データ取得 ── */
+// ============================================================
+// 車両データ取得
+// ============================================================
 function loadVehicles() {
   var el = document.getElementById('vehicleLoadStatus');
   el.innerHTML = '<div class="spinner"></div>&nbsp;読込中…';
@@ -456,7 +416,7 @@ function loadVehicles() {
       if (Array.isArray(data)) {
         vehicleCache  = data;
         vehicleLoaded = true;
-        el.innerHTML  = '✓ ' + data.length + '台取得済み';
+        el.innerHTML   = '✓ ' + data.length + '台取得済み';
         el.style.color = '#059669';
         setTimeout(function() { el.innerHTML = ''; }, 3000);
       } else { throw new Error(); }
@@ -468,117 +428,119 @@ function loadVehicles() {
     });
 }
 
-/* ── タブ切替（モバイル） ── */
+// ============================================================
+// タブ切替（モバイル）
+// ============================================================
 function switchTab(tab) {
   document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
   document.querySelector('[data-tab="' + tab + '"]').classList.add('active');
   if (window.innerWidth < 768) {
     if (tab === 'input') {
-      document.getElementById('panelInput').style.display = 'flex';
+      document.getElementById('panelInput').style.display   = 'flex';
       document.getElementById('panelPreview').style.display = 'none';
     } else {
-      document.getElementById('panelInput').style.display = 'none';
+      document.getElementById('panelInput').style.display   = 'none';
       document.getElementById('panelPreview').style.display = 'flex';
       rescale();
     }
   }
 }
 
-/* ── スケール ── */
+// ============================================================
+// スケール調整
+// ============================================================
 function rescale() {
   var wrap  = document.getElementById('invScaleWrap');
   var inner = document.getElementById('invScaleInner');
   var paper = document.getElementById('invPaper');
   if (!wrap || !inner || !paper) return;
-  var w = wrap.offsetWidth, PW = 794;
-  if (w >= PW) { inner.style.transform = 'none'; wrap.style.height = ''; }
-  else {
-    var scale = w / PW;
+  var w = wrap.offsetWidth;
+  if (w >= 794) {
+    inner.style.transform = 'none';
+    wrap.style.height = '';
+  } else {
+    var scale = w / 794;
     inner.style.transformOrigin = 'top left';
     inner.style.transform = 'scale(' + scale + ')';
-    wrap.style.height = Math.ceil((paper.offsetHeight || 1123) * scale) + 'px';
+    wrap.style.height = Math.ceil(paper.offsetHeight * scale) + 'px';
   }
 }
 window.addEventListener('resize', rescale);
 
-/* ── 行追加 ── */
-function addLineItem(dateVal, contentType, contentText, qty, price, memo) {
+// ============================================================
+// 明細行 追加
+// ============================================================
+function addLineItem(dateVal, ctType, ctText, qty, price, memo) {
   liId++;
-  var id = liId;
-  var ct = contentType || 'custom';
-  var defaultPrice = ct === '名変' ? 4000 : (price || 0);
+  var id  = liId;
+  var ct  = ctType || 'custom';
+  var dfp = (ct === '名変') ? 4000 : (price != null ? price : 0);
 
-  lineItems.push({
-    id: id,
-    date: dateVal || '',
-    contentType: ct,
-    contentText: contentText || (ct !== 'custom' ? ct : ''),
-    qty:   qty   || 1,
-    price: defaultPrice,
-    memo:  memo  || ''
-  });
+  lineItems.push({ id:id, date:dateVal||'', ct:ct, ctText:ctText||'', qty:qty||1, price:dfp, memo:memo||'' });
+
+  /* select のオプション */
+  var opts = PRESETS.map(function(p) {
+    return '<option value="' + p.v + '"' + (ct === p.v ? ' selected' : '') + '>' + p.l + '</option>';
+  }).join('');
 
   var row = document.createElement('div');
   row.className = 'li-row';
   row.id = 'li_' + id;
 
-  /* 内容セルのHTML（selectとサジェスト付きテキスト） */
-  var presetOpts = CONTENT_PRESETS.map(function(p) {
-    return '<option value="' + p.value + '"' + (ct === p.value ? ' selected' : '') + '>' + p.label + '</option>';
-  }).join('');
-
-  var isCustom = (ct === 'custom');
-  var initDesc = isCustom ? (contentText || '') : (ct !== 'custom' ? ct : '');
-
-  var sug = 'sug_' + id;
+  /* innerHTML は二重引用符のみ使用 */
+  var sugId = 'sug_' + id;
   row.innerHTML =
-    /* 月日 */
-    '<input type="text" placeholder="例）4/1" value="' + esc(dateVal||'') + '" id="liDate_'+id+'" oninput="upLI('+id+','date',this.value)" style="font-size:12px;">' +
-    /* 内容 */
+    '<input type="text" placeholder="例）4/1" id="liDate_' + id + '" value="' + eA(dateVal||'') + '" style="font-size:12px;">' +
     '<div class="li-content-wrap">' +
-      '<select id="liType_'+id+'" onchange="onTypeChange('+id+',this.value)">' + presetOpts + '</select>' +
-      '<div class="suggest-wrap" id="liSugWrap_'+id+'" style="' + (isCustom?'':'display:none;') + '">' +
-        '<input type="text" placeholder="内容を入力 or 車両検索…" value="' + esc(initDesc) + '" id="liDesc_'+id+'" oninput="onDescInput('+id+',this)" onkeydown="onDescKey(event,'+id+')" autocomplete="off">' +
-        '<div class="suggest-dropdown" id="'+sug+'"></div>' +
+      '<select id="liType_' + id + '">' + opts + '</select>' +
+      '<div class="suggest-wrap" id="liSugWrap_' + id + '" style="' + (ct==='custom' ? '' : 'display:none;') + '">' +
+        '<input type="text" placeholder="内容を入力 or 車両検索…" id="liDesc_' + id + '" value="' + eA(ct==='custom'?(ctText||''):ct) + '" autocomplete="off">' +
+        '<div class="suggest-dropdown" id="' + sugId + '"></div>' +
       '</div>' +
     '</div>' +
-    /* 数量 */
-    '<input type="number" class="tr" min="1" value="' + (qty||1) + '" id="liQty_'+id+'" oninput="upLI('+id+','qty',this.value)">' +
-    /* 単価 */
-    '<input type="number" class="tr" placeholder="0" value="' + (defaultPrice||'') + '" id="liPrice_'+id+'" oninput="upLI('+id+','price',this.value)">' +
-    /* 備考 */
-    '<input type="text" placeholder="備考" value="' + esc(memo||'') + '" id="liMemo_'+id+'" oninput="upLI('+id+','memo',this.value)" style="font-size:12px;">' +
-    /* 削除 */
-    '<button class="li-del" onclick="delLI('+id+')">×</button>' +
-    '<div class="li-status-hint" id="liHint_'+id+'"></div>';
+    '<input type="number" class="tr" min="1" id="liQty_' + id + '" value="' + (qty||1) + '">' +
+    '<input type="number" class="tr" placeholder="0" id="liPrice_' + id + '" value="' + (dfp||'') + '">' +
+    '<input type="text" placeholder="備考" id="liMemo_' + id + '" value="' + eA(memo||'') + '" style="font-size:12px;">' +
+    '<button class="li-del" id="liDel_' + id + '">×</button>' +
+    '<div class="li-hint" id="liHint_' + id + '"></div>';
 
   document.getElementById('liArea').appendChild(row);
 
+  /* イベント登録 */
+  document.getElementById('liDate_'  + id).addEventListener('input',  function() { upLI(id, 'date',   this.value); });
+  document.getElementById('liType_'  + id).addEventListener('change', function() { onTypeChange(id, this.value); });
+  document.getElementById('liDesc_'  + id).addEventListener('input',  function() { onDescInput(id, this); });
+  document.getElementById('liDesc_'  + id).addEventListener('keydown',function(e){ onDescKey(e, id); });
+  document.getElementById('liQty_'   + id).addEventListener('input',  function() { upLI(id, 'qty',    this.value); });
+  document.getElementById('liPrice_' + id).addEventListener('input',  function() { upLI(id, 'price',  this.value); });
+  document.getElementById('liMemo_'  + id).addEventListener('input',  function() { upLI(id, 'memo',   this.value); });
+  document.getElementById('liDel_'   + id).addEventListener('click',  function() { delLI(id); });
+
+  /* サジェスト外クリックで閉じる */
   document.addEventListener('click', function(e) {
-    var dd = document.getElementById(sug);
+    var dd = document.getElementById(sugId);
     if (dd && !row.contains(e.target)) dd.classList.remove('open');
   });
 
   updatePreview();
 }
 
-/* ── 内容タイプ変更 ── */
+// ============================================================
+// 内容タイプ変更
+// ============================================================
 function onTypeChange(id, val) {
   var item = lineItems.find(function(i) { return i.id === id; });
   if (!item) return;
-  item.contentType = val;
-
-  var sugWrap = document.getElementById('liSugWrap_' + id);
-  var priceEl = document.getElementById('liPrice_'   + id);
-
+  item.ct = val;
+  var wrap  = document.getElementById('liSugWrap_' + id);
+  var priceEl = document.getElementById('liPrice_' + id);
   if (val === 'custom') {
-    sugWrap.style.display = '';
-    item.contentText = document.getElementById('liDesc_' + id) ? document.getElementById('liDesc_' + id).value : '';
+    wrap.style.display = '';
+    item.ctText = (document.getElementById('liDesc_'+id) || {}).value || '';
   } else {
-    sugWrap.style.display = 'none';
-    item.contentText = val;
-    /* 名変はデフォルト4000円 */
-    if (val === '名変' && item.price === 0) {
+    wrap.style.display = 'none';
+    item.ctText = val;
+    if (val === '名変' && !item.price) {
       item.price = 4000;
       if (priceEl) priceEl.value = 4000;
     }
@@ -586,31 +548,43 @@ function onTypeChange(id, val) {
   updatePreview();
 }
 
-/* ── サジェスト ── */
+// ============================================================
+// サジェスト
+// ============================================================
 function onDescInput(id, input) {
-  upLI(id, 'contentText', input.value);
-  var query = input.value.trim();
-  var dd    = document.getElementById('sug_' + id);
-  if (!query) { dd.classList.remove('open'); return; }
+  upLI(id, 'ctText', input.value);
+  var q  = input.value.trim().toLowerCase();
+  var dd = document.getElementById('sug_' + id);
+  if (!q) { dd.classList.remove('open'); return; }
   if (!vehicleLoaded) {
-    dd.innerHTML = '<div class="suggest-loading">車両データ読み込み中…</div>';
+    dd.innerHTML = '<div class="suggest-loading">読み込み中…</div>';
     dd.classList.add('open'); return;
   }
-  var q = query.toLowerCase();
-  var results = vehicleCache.filter(function(v) {
-    return (v.plateNumber||'').toLowerCase().includes(q)
-        || (v.carModel   ||'').toLowerCase().includes(q)
-        || (v.loanDest   ||'').toLowerCase().includes(q)
-        || (v.area       ||'').toLowerCase().includes(q);
-  }).slice(0,8);
-  if (!results.length) { dd.classList.remove('open'); return; }
-  dd.innerHTML = results.map(function(v,i) {
-    var sc = getStatusClass(v.status);
-    return '<div class="suggest-item" onmousedown="selectVehicle('+id+',''+esc2(v.plateNumber||'')+ '',''+esc2(String(v.price||''))+'',''+esc2(v.status||'')+'')">'
+  var res = vehicleCache.filter(function(v) {
+    return (v.plateNumber||'').toLowerCase().indexOf(q) !== -1
+        || (v.carModel    ||v.model||'').toLowerCase().indexOf(q) !== -1
+        || (v.loanDest    ||'').toLowerCase().indexOf(q) !== -1
+        || (v.area        ||'').toLowerCase().indexOf(q) !== -1;
+  }).slice(0, 8);
+  if (!res.length) { dd.classList.remove('open'); return; }
+  dd.innerHTML = res.map(function(v) {
+    var sc  = sClass(v.status);
+    var pn  = eA(v.plateNumber||'');
+    var pr  = eA(String(v.price||''));
+    var st  = eA(v.status||'');
+    var cm  = v.carModel || v.model || v.loanDest || '';
+    return '<div class="suggest-item" data-plate="' + pn + '" data-price="' + pr + '" data-status="' + st + '">'
       + '<span class="suggest-plate">' + (v.plateNumber||'－') + '</span>'
-      + '<span class="suggest-sub">'+(v.carModel||v.loanDest||'')+'　'+(v.area||'')+'　<span class="suggest-status '+sc+'">'+(v.status||'')+'</span></span>'
+      + '<span class="suggest-sub">' + cm + '　' + (v.area||'') + '　<span class="suggest-status ' + sc + '">' + (v.status||'') + '</span></span>'
       + '</div>';
   }).join('');
+  /* mousedown で選択 */
+  dd.querySelectorAll('.suggest-item').forEach(function(el) {
+    el.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      selectVehicle(id, this.getAttribute('data-plate'), this.getAttribute('data-price'), this.getAttribute('data-status'));
+    });
+  });
   dd.classList.add('open');
 }
 
@@ -621,47 +595,49 @@ function onDescKey(e, id) {
   var focused = dd.querySelector('.focused'), idx = -1;
   items.forEach(function(el, i) { if (el === focused) idx = i; });
   if (e.key === 'ArrowDown') { e.preventDefault(); idx = Math.min(idx+1, items.length-1); }
-  else if (e.key === 'ArrowUp')  { e.preventDefault(); idx = Math.max(idx-1, 0); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); idx = Math.max(idx-1, 0); }
   else if (e.key === 'Enter' && focused) { e.preventDefault(); focused.dispatchEvent(new MouseEvent('mousedown')); return; }
-  else if (e.key === 'Escape')   { dd.classList.remove('open'); return; }
+  else if (e.key === 'Escape') { dd.classList.remove('open'); return; }
   else return;
   items.forEach(function(el) { el.classList.remove('focused'); });
   if (items[idx]) items[idx].classList.add('focused');
 }
 
 function selectVehicle(id, plate, rawPrice, status) {
-  var priceNum = parseInt((rawPrice||'').replace(/[^0-9]/g,'')) || 0;
-  var descEl  = document.getElementById('liDesc_'  + id);
-  var priceEl = document.getElementById('liPrice_' + id);
-  if (descEl)  descEl.value  = plate;
-  if (priceEl) priceEl.value = priceNum || '';
+  var pn  = parseInt((rawPrice||'').replace(/[^0-9]/g, '')) || 0;
+  var de  = document.getElementById('liDesc_'  + id);
+  var pr  = document.getElementById('liPrice_' + id);
+  if (de) de.value = plate;
+  if (pr) pr.value = pn || '';
   var hint = document.getElementById('liHint_' + id);
   if (hint) {
-    var sc = getStatusClass(status);
-    hint.innerHTML = '現在のステータス：<span class="suggest-status ' + sc + '">' + status + '</span>';
+    hint.innerHTML = '現在のステータス：<span class="suggest-status ' + sClass(status) + '">' + status + '</span>';
   }
-  upLI(id, 'contentText', plate);
-  upLI(id, 'price', priceNum);
+  upLI(id, 'ctText', plate);
+  upLI(id, 'price',  pn);
   var dd = document.getElementById('sug_' + id);
   if (dd) dd.classList.remove('open');
 }
 
-function getStatusClass(s) {
+function sClass(s) {
+  if (!s) return 's-other';
   if (s === '販売可' || s === '貸出可') return 's-available';
   if (s === '貸出中') return 's-inuse';
   if (s === '修理中' || s === '要修理') return 's-repair';
   return 's-other';
 }
 
-/* ── 行データ更新・削除 ── */
+// ============================================================
+// 行データ更新・削除
+// ============================================================
 function upLI(id, field, value) {
   var item = lineItems.find(function(i) { return i.id === id; });
   if (!item) return;
-  if (field === 'qty')         item.qty         = parseInt(value)  || 1;
-  if (field === 'price')       item.price       = parseInt(value)  || 0;
-  if (field === 'date')        item.date        = value;
-  if (field === 'contentText') item.contentText = value;
-  if (field === 'memo')        item.memo        = value;
+  if (field === 'qty')    item.qty    = parseInt(value)  || 1;
+  if (field === 'price')  item.price  = parseInt(value)  || 0;
+  if (field === 'date')   item.date   = value;
+  if (field === 'ctText') item.ctText = value;
+  if (field === 'memo')   item.memo   = value;
   updatePreview();
 }
 
@@ -672,27 +648,30 @@ function delLI(id) {
   updatePreview();
 }
 
-/* ── ユーティリティ ── */
-function pad(n)  { return String(n).padStart(2,'0'); }
-function esc(s)  { return String(s).replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
-function esc2(s) { return String(s).replace(/'/g,"\'").replace(/</g,'&lt;'); }
+// ============================================================
+// ユーティリティ
+// ============================================================
+function pad(n) { return String(n).padStart(2,'0'); }
+function eA(s)  { return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
 function fmtDate(s) {
   if (!s) return '―';
   var d = new Date(s);
-  if (isNaN(d)) return s;
-  return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日';
+  if (isNaN(d.getTime())) return s;
+  return d.getFullYear() + '年' + (d.getMonth()+1) + '月' + d.getDate() + '日';
 }
-function fmtMoney(n) { return n.toLocaleString('ja-JP'); }
-function gv(id) { return document.getElementById(id) ? document.getElementById(id).value : ''; }
+function fmtM(n) { return Number(n).toLocaleString('ja-JP'); }
+function gv(id)  { var el = document.getElementById(id); return el ? el.value : ''; }
 function setTxt(id, txt) {
   var el = document.getElementById(id);
   if (!el || document.activeElement === el) return;
   el.textContent = txt;
 }
 
-/* ── プレビュー更新 ── */
+// ============================================================
+// プレビュー更新
+// ============================================================
 function updatePreview() {
-  setTxt('pvNo',      gv('invNo') || '―');
   setTxt('pvDate',    fmtDate(gv('invDate')));
   setTxt('pvPartner', gv('invPartner') || '（取引先名）');
   setTxt('pvStart',   fmtDate(gv('invStart')));
@@ -702,42 +681,43 @@ function updatePreview() {
 
   var subtotal = 0;
   var tbody = document.getElementById('pvBody');
-
   if (lineItems.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="color:#9ca3af;text-align:center;padding:20px;">明細を入力してください</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="color:#9ca3af;text-align:center;padding:20px;">明細を入力してください</td></tr>';
   } else {
-    tbody.innerHTML = lineItems.map(function(item) {
-      var amt  = (item.qty||0) * (item.price||0);
+    tbody.innerHTML = lineItems.map(function(item, idx) {
+      var label = (item.ct === 'custom') ? (item.ctText || '―') : item.ct;
+      var amt   = (item.qty || 0) * (item.price || 0);
       subtotal += amt;
-      var label = (item.contentType === 'custom') ? (item.contentText||'―') : item.contentType;
       return '<tr>'
+        + '<td style="text-align:center;">' + (idx+1) + '</td>'
         + '<td>' + (item.date || '―') + '</td>'
         + '<td>' + label + '</td>'
-        + '<td style="text-align:right;">' + (item.qty||1) + '</td>'
-        + '<td style="text-align:right;">¥' + fmtMoney(item.price||0) + '</td>'
-        + '<td style="text-align:right;">¥' + fmtMoney(amt) + '</td>'
-        + '<td>' + (item.memo||'') + '</td>'
+        + '<td class="tr">' + (item.qty||1) + '</td>'
+        + '<td class="tr">¥' + fmtM(item.price||0) + '</td>'
+        + '<td class="tr">¥' + fmtM(amt) + '</td>'
+        + '<td>' + (item.memo || '') + '</td>'
         + '</tr>';
     }).join('');
   }
 
   var tax   = Math.floor(subtotal * 0.1);
   var total = subtotal + tax;
-  setTxt('pvSubtotal', '¥' + fmtMoney(subtotal));
-  setTxt('pvTax',      '¥' + fmtMoney(tax));
-  setTxt('pvTotalRow', '¥' + fmtMoney(total));
-  setTxt('pvTotal',    fmtMoney(total));
+  setTxt('pvSubtotal', '¥' + fmtM(subtotal));
+  setTxt('pvTax',      '¥' + fmtM(tax));
+  setTxt('pvTotalRow', '¥' + fmtM(total));
+  setTxt('pvTotal',    fmtM(total));
   rescale();
 }
 
-/* ── 保存・読み込み ── */
+// ============================================================
+// 保存・読み込み（localStorage）
+// ============================================================
 function saveInvoice() {
   var partner = gv('invPartner');
   if (!partner) { showToast('取引先名を入力してください'); return; }
   var inv = {
     id:        currentId || Date.now(),
     savedAt:   new Date().toISOString(),
-    no:        gv('invNo'),
     partner:   partner,
     date:      gv('invDate'),
     payDate:   gv('invPayDate'),
@@ -749,19 +729,20 @@ function saveInvoice() {
   var idx = savedInvoices.findIndex(function(i) { return i.id === inv.id; });
   if (idx >= 0) { savedInvoices[idx] = inv; } else { savedInvoices.push(inv); }
   currentId = inv.id;
-  persist();
-  renderSaved();
+  persist(); renderSaved();
   showToast('保存しました ✓');
   if (window.innerWidth < 768) switchTab('preview');
 }
 
 function persist() {
-  try { localStorage.setItem('task_invoices_v3', JSON.stringify(savedInvoices)); } catch(e) {}
+  try { localStorage.setItem('task_inv_v4', JSON.stringify(savedInvoices)); } catch(e) {}
 }
 
 function loadSaved() {
-  try { var d = localStorage.getItem('task_invoices_v3'); if (d) savedInvoices = JSON.parse(d); }
-  catch(e) { savedInvoices = []; }
+  try {
+    var d = localStorage.getItem('task_inv_v4');
+    if (d) savedInvoices = JSON.parse(d);
+  } catch(e) { savedInvoices = []; }
   renderSaved();
 }
 
@@ -771,22 +752,27 @@ function renderSaved() {
   var list = savedInvoices.slice().sort(function(a,b) { return b.savedAt.localeCompare(a.savedAt); });
   c.innerHTML = list.map(function(inv) {
     var d  = new Date(inv.savedAt);
-    var ds = (d.getMonth()+1)+'/'+d.getDate()+' '+d.getHours()+':'+pad(d.getMinutes());
+    var ds = (d.getMonth()+1) + '/' + d.getDate() + ' ' + d.getHours() + ':' + pad(d.getMinutes());
     return '<div class="saved-item">'
-      + '<div class="saved-item-body" onclick="loadInvoice('+inv.id+')">'
-      + '<div class="saved-name">' + (inv.no ? '['+inv.no+'] ' : '') + inv.partner + '</div>'
-      + '<div class="saved-date">保存：'+ds+'</div>'
+      + '<div class="saved-item-body" data-invid="' + inv.id + '">'
+        + '<div class="saved-name">' + inv.partner + '</div>'
+        + '<div class="saved-date">保存：' + ds + '</div>'
       + '</div>'
-      + '<button class="saved-del" onclick="deleteSaved('+inv.id+')">×</button>'
+      + '<button class="saved-del" data-invid="' + inv.id + '">×</button>'
       + '</div>';
   }).join('');
+  c.querySelectorAll('.saved-item-body').forEach(function(el) {
+    el.addEventListener('click', function() { loadInvoice(Number(this.getAttribute('data-invid'))); });
+  });
+  c.querySelectorAll('.saved-del').forEach(function(el) {
+    el.addEventListener('click', function() { deleteSaved(Number(this.getAttribute('data-invid'))); });
+  });
 }
 
 function loadInvoice(id) {
   var inv = savedInvoices.find(function(i) { return i.id === id; });
   if (!inv) return;
   currentId = inv.id;
-  document.getElementById('invNo').value      = inv.no      || '';
   document.getElementById('invDate').value    = inv.date    || '';
   document.getElementById('invPayDate').value = inv.payDate || '';
   document.getElementById('invPartner').value = inv.partner || '';
@@ -798,7 +784,7 @@ function loadInvoice(id) {
   liId = 0;
   if (inv.lineItems && inv.lineItems.length) {
     inv.lineItems.forEach(function(item) {
-      addLineItem(item.date, item.contentType, item.contentText, item.qty, item.price, item.memo);
+      addLineItem(item.date, item.ct, item.ctText, item.qty, item.price, item.memo);
     });
   } else { addLineItem(); }
   updatePreview();
@@ -818,23 +804,32 @@ function clearForm() {
     if (!confirm('入力内容をリセットしますか？')) return;
   }
   currentId = null;
-  ['invNo','invDate','invPayDate','invPartner','invStart','invEnd','invNote'].forEach(function(id) {
+  ['invDate','invPayDate','invPartner','invStart','invEnd','invNote'].forEach(function(id) {
     document.getElementById(id).value = '';
   });
   lineItems = [];
   document.getElementById('liArea').innerHTML = '';
   liId = 0;
+  var d = new Date();
+  document.getElementById('invDate').value = d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
   addLineItem();
-  setToday();
+  updatePreview();
   showToast('新規作成しました');
 }
 
+// ============================================================
+// TOAST
+// ============================================================
 function showToast(msg) {
   var t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
+  t.textContent = msg;
+  t.classList.add('show');
   setTimeout(function() { t.classList.remove('show'); }, 2500);
 }
 
+// ============================================================
+// 起動
+// ============================================================
 init();
 </script>
 </body>
