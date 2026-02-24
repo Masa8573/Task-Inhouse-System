@@ -91,7 +91,7 @@
     onAuthStateChanged(auth, (user) => {
         if (!user) {
             // 未ログインの場合：履歴を残さずにlogin.htmlへ強制送還
-            window.location.replace('/employee/login.html');
+            window.location.replace('./login.html');
         } else {
             // ログイン済みの場合：画面の透明化を解除して中身を表示
             document.body.style.opacity = 1;
