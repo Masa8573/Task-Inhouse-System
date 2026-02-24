@@ -97,6 +97,11 @@
                     alert("ログインに失敗しました。もう一度お試しください。");
                 });
         });
+        // LINEブラウザからのアクセスを検知する処理
+        const userAgent = navigator.userAgent.toLowerCase();
+        if (userAgent.indexOf("line") > -1) {
+            alert("LINEのブラウザではログインできません。\n画面右下（または右上）のボタンから「デフォルトのブラウザで開く」または「Safari/Chromeで開く」を選択してください。");
+        }
     </script>
 
 </body>
