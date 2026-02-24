@@ -564,6 +564,10 @@
               <div class="detail-info-value">${vehicle.area}</div>
             </div>
             <div class="detail-info-item">
+              <div class="detail-info-label">車検満了日</div>           ← 追加
+              <div class="detail-info-value">${vehicle.inspection || '未登録'}</div>  ← 追加
+            </div>
+            <div class="detail-info-item">
               <div class="detail-info-label">ステータス</div>
               <div><span class="status-badge ${statusClass}">${vehicle.status}</span></div>
             </div>
