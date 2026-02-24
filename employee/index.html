@@ -490,13 +490,13 @@
           <p>${vehicle.chassisNumber || vehicle.model || ''}</p>
         </div>
         <div class="detail-info-list">
+          <div class="detail-info-item"><div class="detail-info-label">所有者</div><div class="detail-info-value">${vehicle.owner || '-'}</div></div>
+          <div class="detail-info-item"><div class="detail-info-label">使用者</div><div class="detail-info-value">${vehicle.user || '-'}</div></div>
           <div class="detail-info-item"><div class="detail-info-label">車台番号</div><div class="detail-info-value">${vehicle.chassisNumber || '-'}</div></div>
           <div class="detail-info-item"><div class="detail-info-label">ステータス</div><div class="detail-info-value">${vehicle.status}</div></div>
           <div class="detail-info-item"><div class="detail-info-label">車検満了日</div><div class="detail-info-value">${vehicle.inspection || '-'}</div></div>
           <div class="detail-info-item"><div class="detail-info-label">保険</div><div class="detail-info-value">${vehicle.insurance || '-'}</div></div>
           <div class="detail-info-item"><div class="detail-info-label">エリア</div><div class="detail-info-value">${vehicle.area || '-'}</div></div>
-          <div class="detail-info-item"><div class="detail-info-label">所有者</div><div class="detail-info-value">${vehicle.owner || '-'}</div></div>
-          <div class="detail-info-item"><div class="detail-info-label">使用者</div><div class="detail-info-value">${vehicle.user || '-'}</div></div>
           <div class="detail-info-item"><div class="detail-info-label">価格</div><div class="detail-info-value">${vehicle.price || '-'}</div></div>
           <div style="padding-top:8px;"><div class="detail-info-label">車両ID</div><div class="detail-info-value">#${String('0000' + vehicle.id).slice(-4)}</div></div>
         </div>
