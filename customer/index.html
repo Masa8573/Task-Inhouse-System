@@ -424,7 +424,7 @@
   </div>
 
   <script>
-    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwhuVd91JbmhoIfnNSXCd9tj07xYoio5MvKtv51nG6NmtCS-w9I5tjrn_mONapj5s6GJA/exec';
+    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbx35ZTEbcb3tvlUPtDUYk6nd4B0ppHpCs1ikvE4qGVJzJYvwN5tb1F6JPzBQ9p-TsNFlg/exec';
     
     let vehicles = [];
     let currentImageIndex = 0;
@@ -481,13 +481,13 @@
         html += `
           <div class="${cardClass}" onclick="showDetail(${vehicle.id})">
             <div class="vehicle-card-inner">
-              <img src="${firstImage}" alt="${vehicle.model}" class="vehicle-image">
+              <img src="${firstImage}" alt="${vehicle.carModel}" class="vehicle-image">
               <div class="vehicle-card-content">
-                <h2>${vehicle.model}</h2>
+                <h2>${vehicle.carModel}</h2>
                 <div class="vehicle-info-grid">
                   <div class="info-item">
                     <div class="info-label">価格</div>
-                    <div class="info-value bold">${vehicle.price}</div>
+                    <div class="info-value bold">${vehicle.price ? vehicle.price.toLocaleString() + "円/月" : "未設定"}</div>
                   </div>
                   <div class="info-item">
                     <div class="info-label">ステータス</div>
@@ -524,7 +524,7 @@
         galleryHtml += `
           <div class="image-gallery">
             <div class="main-image-container">
-              <img id="mainImage" src="${vehicle.images[0]}" alt="${vehicle.model}" class="main-image">
+              <img id="mainImage" src="${vehicle.images[0]}" alt="${vehicle.carModel}" class="main-image">
               <div class="image-counter">
                 <span id="currentImageNumber">1</span> / ${vehicle.images.length}
               </div>
@@ -553,19 +553,15 @@
       const html = `
         ${galleryHtml}
         <div class="detail-info">
-          <h1 class="detail-title">${vehicle.model}</h1>
+          <h1 class="detail-title">${vehicle.carModel}</h1>
           <div class="detail-info-list">
             <div class="detail-info-item">
               <div class="detail-info-label">価格</div>
-              <div class="detail-info-value">${vehicle.price}</div>
+              <div class="detail-info-value">${vehicle.price ? vehicle.price.toLocaleString() + "円/月" : "未設定"}</div>
             </div>
             <div class="detail-info-item">
               <div class="detail-info-label">対応エリア</div>
               <div class="detail-info-value">${vehicle.area}</div>
-            </div>
-            <div class="detail-info-item">
-              <div class="detail-info-label">車検満了日</div>           ← 追加
-              <div class="detail-info-value">${vehicle.inspection || '未登録'}</div>  ← 追加
             </div>
             <div class="detail-info-item">
               <div class="detail-info-label">ステータス</div>
@@ -573,7 +569,7 @@
             </div>
           </div>
           ${isAvailable 
-            ? `<button class="contact-button" onclick="contactForReservation('${vehicle.model}')">LINEで予約する</button>` 
+            ? `<button class="contact-button" onclick="contactForReservation('${vehicle.carModel}')">LINEで予約する</button>` 
             : `<button class="contact-button" disabled>現在貸出できません</button>`
           }
         </div>
