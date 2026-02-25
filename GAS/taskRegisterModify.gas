@@ -1,0 +1,525 @@
+/**
+ * =====================================================
+ *  車両管理システム - GAS 統合版
+ *  役割：
+ *    1. doGet      : WebページへのAPI提供 (社員用 / 顧客用)
+ *    2. フォーム処理 : 登録・修正フォームの送信を受けてマスターデータを更新 → LINE通知
+ *    3. 期日チェック : 毎日9時に車検・オイル交換の期日を確認 → LINE通知
+ *
+ *  Make の役割：GASから届いたLINEメッセージをLINEに送信するだけ
+ * =====================================================
+ */
+
+// =====================================================
+//  ★ 設定エリア（ここだけ書き換えればOK）
+// =====================================================
+
+const CONFIG = {
+
+  // --- スプレッドシート ---
+  SPREADSHEET_ID: '1wAfgpOuhMXWciuxr7aKCEHtI6qNbFbRE2CSzytFMr4M',
+  SHEET: {
+    MASTER:        'マスターデータ',
+    REGISTER_LOG:  '登録シート',
+    MODIFY_LOG:    '修正シート',
+  },
+
+  // --- Make Webhook ---
+  // 通知先のLINEアカウント設定はMake側で行います。GAS側の指定は不要です。
+  WEBHOOK_URL: 'https://hook.eu2.make.com/my8kvc5qb6n56of4denemgr9q5r8rpb1',
+
+  // --- 通知タイミング（日数） ---
+  NOTIFICATION_DAYS: {
+    VEHICLE_INSPECTION: [60, 30, 21], // 車検満了日：2か月前(60日)・1か月前(30日)・3週間前(21日)
+    OIL_CHANGE:         [7,  0],      // オイル交換日：1週間前(7日)・当日(0日)
+  },
+};
+
+// =====================================================
+//  スプシのヘッダー名 → 列インデックスのマッピング
+//  ※ スプシのヘッダー行と一致させてください
+// =====================================================
+
+/**
+ * マスターシートの列名定義
+ * 実際のスプシヘッダー：
+ *   タイムスタンプ | 自動車ナンバー | 貸出先 | 使用者 | 車台番号 | 所有者 |
+ *   任意保険 | 状態 | 貸出先/エリア | 車検満了日 | オイル交換日 |
+ *   レンタル料金（例：15000） | 車両画像
+ */
+const COL = {
+  TIMESTAMP:   'タイムスタンプ',
+  PLATE:       '自動車ナンバー',
+  CARMODEL:    '車種',            // ★追加
+  LOAN_DEST:   '貸出先',
+  USER:        '使用者',
+  CHASSIS:     '車台番号',
+  OWNER:       '所有者',
+  INSURANCE:   '任意保険',
+  STATUS:      '状態',
+  AREA:        '貸出先/エリア',
+  INSPECTION:  '車検満了日',
+  OIL:         'オイル交換日',
+  PRICE:       'レンタル料金（例：15000）',
+  IMAGE:       '車両画像',
+};
+
+// フォームの質問名 → COLキー のマッピング（修正フォームの差分更新で使用）
+const FORM_TO_COL = {
+  '自動車ナンバー':            COL.PLATE,
+  '貸出先':                    COL.LOAN_DEST,
+  '使用者':                    COL.USER,
+  '車台番号':                  COL.CHASSIS,
+  '所有者':                    COL.OWNER,
+  '任意保険':                  COL.INSURANCE,
+  '状態':                      COL.STATUS,
+  '貸出先/エリア':             COL.AREA,
+  '車検満了日':                COL.INSPECTION,
+  'オイル交換日':              COL.OIL,
+  'レンタル料金（例：15000）': COL.PRICE,
+  '車両画像':                  COL.IMAGE,
+};
+
+
+// =====================================================
+//  1. doGet : Webページ用API
+// =====================================================
+
+function doGet(e) {
+  const role = (e && e.parameter) ? e.parameter.role : null;
+
+  try {
+    const vehicles = _getMasterData();
+
+    let responseData;
+    if (role === 'client') {
+      // 顧客用：必要最小限の項目のみ返す
+      responseData = vehicles.map(car => ({
+        id:         car.id,
+        carModel:   car.carModel,  // 顧客向けは車種
+        price:      car.price,
+        area:       car.area,
+        status:     car.status === '販売可' ? '貸出可' : '貸出不可',
+        images:     car.images,
+        inspection: car.inspection,  // 車検満了日（顧客向けに追加）
+      }));
+    } else {
+      // 社員用：全項目返す
+      responseData = vehicles;
+    }
+
+    return _jsonResponse(responseData);
+
+  } catch (err) {
+    Logger.log('doGet エラー: ' + err.message);
+    return _jsonResponse({ error: err.message });
+  }
+}
+
+
+// =====================================================
+//  2. フォーム送信処理
+// =====================================================
+
+/**
+ * 登録フォーム送信時のトリガー関数
+ * スプシ側のトリガー設定：「フォーム送信時」→ onFormSubmitRegister
+ */
+function onFormSubmitRegister(e) {
+  _handleFormSubmit(e, 'REGISTER');
+}
+
+/**
+ * 修正フォーム送信時のトリガー関数
+ * スプシ側のトリガー設定：「フォーム送信時」→ onFormSubmitModify
+ */
+function onFormSubmitModify(e) {
+  _handleFormSubmit(e, 'MODIFY');
+}
+
+function _handleFormSubmit(e, type) {
+  if (!e || !e.namedValues) {
+    Logger.log('イベントオブジェクトなし（テスト実行は手動でダミーを渡してください）');
+    return;
+  }
+
+  const formResponse = e.namedValues;
+  const ss           = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+  const masterSheet  = ss.getSheetByName(CONFIG.SHEET.MASTER);
+  if (!masterSheet) throw new Error('マスターデータシートが見つかりません');
+
+  // ナンバープレートを取得
+  const plate = _getFormValue(formResponse, '自動車ナンバー');
+  if (!plate) {
+    Logger.log('自動車ナンバーが空のためスキップ');
+    return;
+  }
+
+  const allData  = masterSheet.getDataRange().getValues();
+  const headers  = allData[0];
+  const colIndex = (colName) => headers.indexOf(colName); // ヘッダー名 → 列番号
+
+  // マスターデータから該当行を検索
+  let rowIndex = -1;
+  const plateCol = colIndex(COL.PLATE);
+  for (let i = 1; i < allData.length; i++) {
+    if (String(allData[i][plateCol]) === String(plate)) {
+      rowIndex = i;
+      break;
+    }
+  }
+
+  // 登録 or 修正の分岐
+  if (type === 'REGISTER' && rowIndex !== -1) {
+    _sendLineMessage(`⚠️ 登録スキップ\nナンバー「${plate}」は既に登録済みです。`);
+    return;
+  }
+  if (type === 'MODIFY' && rowIndex === -1) {
+    _sendLineMessage(`⚠️ 修正スキップ\nナンバー「${plate}」はマスターデータに存在しません。`);
+    return;
+  }
+
+  // 書き込みデータの準備
+  const newRow = type === 'REGISTER'
+    ? new Array(headers.length).fill('')
+    : [...allData[rowIndex]];
+
+  if (type === 'REGISTER') {
+    newRow[colIndex(COL.TIMESTAMP)] = new Date();
+  }
+
+  const changedItems = [];
+
+  // フォームの回答をマッピングして適用
+  for (const question in formResponse) {
+    const colName = _matchFormKey(question);
+    if (!colName) continue;
+
+    const idx = colIndex(colName);
+    if (idx === -1) continue;
+
+    const rawVal = formResponse[question][0];
+    if (!rawVal && rawVal !== 0) continue;
+
+    const newVal = rawVal instanceof Date
+      ? Utilities.formatDate(rawVal, Session.getScriptTimeZone(), 'yyyy/MM/dd')
+      : String(rawVal);
+
+    const oldVal = newRow[idx];
+    if (String(oldVal) !== newVal) {
+      changedItems.push(`・${colName}：${oldVal || '（空欄）'} → ${newVal}`);
+      newRow[idx] = newVal;
+    }
+  }
+
+  // シートに書き込み
+  if (type === 'REGISTER') {
+    masterSheet.appendRow(newRow);
+  } else if (changedItems.length > 0) {
+    masterSheet.getRange(rowIndex + 1, 1, 1, newRow.length).setValues([newRow]);
+  }
+
+  // LINE通知メッセージの組み立て
+  let message = '';
+  if (type === 'REGISTER') {
+    message =
+      `🚗 車両登録完了\n` +
+      `━━━━━━━━━━━━━━\n` +
+      `ナンバー：${plate}\n` +
+      `状態　　：${newRow[colIndex(COL.STATUS)] || '未設定'}\n` +
+      `エリア　：${newRow[colIndex(COL.AREA)]   || '未設定'}\n` +
+      `登録日時：${Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy/MM/dd HH:mm')}`;
+  } else if (changedItems.length > 0) {
+    message =
+      `✏️ 車両情報更新\n` +
+      `━━━━━━━━━━━━━━\n` +
+      `ナンバー：${plate}\n` +
+      `変更内容：\n${changedItems.join('\n')}`;
+  } else {
+    Logger.log('変更なし：通知スキップ');
+    return;
+  }
+
+  _sendLineMessage(message);
+  Logger.log(`${type} 処理完了: ${plate}`);
+}
+
+
+// =====================================================
+//  3. 期日チェック（毎日9時に自動実行）
+// =====================================================
+
+/**
+ * トリガー設定：時間ベース → 毎日 → 午前9時
+ * 関数名: checkDueDates
+ */
+function checkDueDates() {
+  Logger.log('--- 期日チェック開始 ---');
+
+  const ss    = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(CONFIG.SHEET.MASTER);
+  if (!sheet) return;
+
+  const data    = sheet.getDataRange().getValues();
+  const headers = data[0];
+  const colIdx  = (name) => headers.indexOf(name);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // カテゴリ別に通知をまとめる
+  const alerts = {
+    inspection: [], // 車検満了日
+    oil:        [], // オイル交換日
+  };
+
+  for (let i = 1; i < data.length; i++) {
+    const row   = data[i];
+    const plate = row[colIdx(COL.PLATE)];
+    if (!plate) continue;
+
+    // 車検満了日チェック
+    const inspectionDate = row[colIdx(COL.INSPECTION)];
+    if (inspectionDate) {
+      const target = _toDate(inspectionDate);
+      if (target) {
+        const diffDays = _daysDiff(today, target);
+        if (CONFIG.NOTIFICATION_DAYS.VEHICLE_INSPECTION.includes(diffDays)) {
+          alerts.inspection.push(
+            `・${plate}　${diffDays === 0 ? '【当日】' : `あと${diffDays}日`}　期日：${_formatDate(target)}`
+          );
+        }
+      }
+    }
+
+    // オイル交換日チェック
+    const oilDate = row[colIdx(COL.OIL)];
+    if (oilDate) {
+      const target = _toDate(oilDate);
+      if (target) {
+        const diffDays = _daysDiff(today, target);
+        if (CONFIG.NOTIFICATION_DAYS.OIL_CHANGE.includes(diffDays)) {
+          alerts.oil.push(
+            `・${plate}　${diffDays === 0 ? '【当日】' : `あと${diffDays}日`}　期日：${_formatDate(target)}`
+          );
+        }
+      }
+    }
+  }
+
+  const totalCount = alerts.inspection.length + alerts.oil.length;
+
+  if (totalCount === 0) {
+    Logger.log('本日の通知対象なし');
+    Logger.log('--- 期日チェック終了 ---');
+    return;
+  }
+
+  // 1通にまとめて送信
+  const dateStr = Utilities.formatDate(today, Session.getScriptTimeZone(), 'yyyy/MM/dd');
+  const lines   = [`📋 本日の期日通知　${dateStr}`, `━━━━━━━━━━━━━━`];
+
+  if (alerts.inspection.length > 0) {
+    lines.push(`🚗 車検満了日（${alerts.inspection.length}件）`);
+    alerts.inspection.forEach(l => lines.push(l));
+  }
+
+  if (alerts.inspection.length > 0 && alerts.oil.length > 0) {
+    lines.push(''); // カテゴリ間の空行
+  }
+
+  if (alerts.oil.length > 0) {
+    lines.push(`⛽ オイル交換日（${alerts.oil.length}件）`);
+    alerts.oil.forEach(l => lines.push(l));
+  }
+
+  _sendLineMessage(lines.join('\n'));
+  Logger.log(`通知送信: 合計${totalCount}件を1通にまとめて送信`);
+  Logger.log('--- 期日チェック終了 ---');
+}
+
+
+// =====================================================
+//  4. トリガー自動設定（一度だけ実行）
+// =====================================================
+
+/**
+ * このプロジェクトに必要なトリガーを一括設定します。
+ * GASエディタから手動で1回だけ実行してください。
+ */
+function setupTriggers() {
+  // 既存のトリガーを全削除（重複防止）
+  ScriptApp.getProjectTriggers().forEach(t => ScriptApp.deleteTrigger(t));
+
+  // 毎日9時に期日チェック
+  ScriptApp.newTrigger('checkDueDates')
+    .timeBased()
+    .everyDays(1)
+    .atHour(9)
+    .create();
+
+  Logger.log('トリガー設定完了：checkDueDates → 毎日9時');
+  Logger.log('※ 登録・修正フォームのトリガーはスプシ側のフォーム送信イベントで設定してください。');
+}
+
+
+// =====================================================
+//  プライベート関数（内部処理用・関数名は _ で始める）
+// =====================================================
+
+/**
+ * マスターデータを取得して配列で返す
+ */
+function _getMasterData() {
+  const ss      = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+  const sheet   = ss.getSheetByName(CONFIG.SHEET.MASTER);
+  if (!sheet) throw new Error(`シート "${CONFIG.SHEET.MASTER}" が見つかりません`);
+
+  const data    = sheet.getDataRange().getValues();
+  if (data.length <= 1) throw new Error('データが存在しません（ヘッダー行のみ）');
+
+  const headers  = data[0];
+  const colIdx   = (name) => headers.indexOf(name);
+
+  const vehicles = [];
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (!row[colIdx(COL.PLATE)]) continue; // ナンバーが空の行はスキップ
+
+    const folderId = row[colIdx(COL.IMAGE)];
+    const images   = _getImagesFromFolder(folderId);
+    const rawPrice = row[colIdx(COL.PRICE)];
+
+    vehicles.push({
+      id:            i,
+      plateNumber:   row[colIdx(COL.PLATE)]      || '',
+      carModel:      row[colIdx(COL.CARMODEL)]   || '', // 車種
+      loanDest:      row[colIdx(COL.LOAN_DEST)]   || '', // 貸出先
+      chassisNumber: row[colIdx(COL.CHASSIS)]    || '', // 社員向け：車台番号
+      owner:         row[colIdx(COL.OWNER)]      || '',
+      user:          row[colIdx(COL.USER)]        || '',
+      insurance:     row[colIdx(COL.INSURANCE)]  || '',
+      status:        row[colIdx(COL.STATUS)]     || '',
+      area:          row[colIdx(COL.AREA)]        || '',
+      inspection:    _formatDate(_toDate(row[colIdx(COL.INSPECTION)])),
+      oil:           _formatDate(_toDate(row[colIdx(COL.OIL)])),
+      price:         rawPrice !== '' ? Number(rawPrice) : '', // 数値で返す
+      images:        images,
+    });
+  }
+
+  return vehicles;
+}
+
+/**
+ * Googleドライブのフォルダから画像URLを取得
+ */
+function _getImagesFromFolder(folderId) {
+  if (!folderId) return ['https://placehold.co/400x300/e5e7eb/6b7280?text=No+Image'];
+
+  try {
+    const folder     = DriveApp.getFolderById(String(folderId).trim());
+    const files      = folder.getFiles();
+    const extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    const urls       = [];
+
+    while (files.hasNext()) {
+      const file = files.next();
+      const name = file.getName().toLowerCase();
+      if (extensions.some(ext => name.endsWith('.' + ext))) {
+        urls.push(`https://drive.google.com/thumbnail?id=${file.getId()}&sz=w800`);
+      }
+      if (urls.length >= 20) break; // 最大20枚
+    }
+
+    return urls.length > 0
+      ? urls
+      : ['https://placehold.co/400x300/e5e7eb/6b7280?text=No+Image'];
+
+  } catch (err) {
+    Logger.log('画像取得エラー: ' + err.message);
+    return ['https://placehold.co/400x300/e5e7eb/6b7280?text=Error'];
+  }
+}
+
+/**
+ * MakeのWebhookにLINEメッセージを送信する
+ * Make側のシナリオ：Webhookで受け取り → LINEの「メッセージ送信」に lineMessage を渡すだけ
+ */
+function _sendLineMessage(text) {
+  try {
+    const payload = {
+      lineMessage: text,
+      timestamp:   new Date().toISOString(),
+    };
+
+    UrlFetchApp.fetch(CONFIG.WEBHOOK_URL, {
+      method:          'POST',
+      contentType:     'application/json',
+      payload:         JSON.stringify(payload),
+      muteHttpExceptions: true,
+    });
+
+    Logger.log('LINE通知送信完了: ' + text.split('\n')[0]); // 1行目だけログ
+  } catch (err) {
+    Logger.log('LINE通知送信失敗: ' + err.message);
+  }
+}
+
+/**
+ * フォームの質問名（部分一致）からCOLのヘッダー名を返す
+ */
+function _matchFormKey(question) {
+  for (const key in FORM_TO_COL) {
+    if (question.includes(key)) return FORM_TO_COL[key];
+  }
+  return null;
+}
+
+/**
+ * namedValuesから指定キーの値を取得（部分一致）
+ */
+function _getFormValue(namedValues, keyword) {
+  for (const key in namedValues) {
+    if (key.includes(keyword)) {
+      const val = namedValues[key][0];
+      return val ? String(val).trim() : null;
+    }
+  }
+  return null;
+}
+
+/**
+ * 日付文字列 or Dateオブジェクト → Dateオブジェクト（失敗時はnull）
+ */
+function _toDate(val) {
+  if (!val) return null;
+  if (val instanceof Date) return val;
+  const d = new Date(val);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+/**
+ * Dateオブジェクト → 'yyyy-MM-dd' 文字列
+ */
+function _formatDate(date) {
+  if (!date) return '';
+  return Utilities.formatDate(date, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+}
+
+/**
+ * today から target まで何日後か（マイナスは過去）
+ */
+function _daysDiff(today, target) {
+  const diff = target.getTime() - today.getTime();
+  return Math.round(diff / (1000 * 60 * 60 * 24));
+}
+
+/**
+ * JSON形式のレスポンスを返す（CORSヘッダー付き）
+ */
+function _jsonResponse(data) {
+  const output = ContentService.createTextOutput(JSON.stringify(data));
+  output.setMimeType(ContentService.MimeType.JSON);
+  return output;
+}
