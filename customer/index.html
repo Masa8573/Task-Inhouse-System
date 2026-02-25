@@ -3,189 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>社用車レンタル - 顧客向け</title>
+  <title>空き車両一覧 - 大阪エリア | 株式会社TASK</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
       background-color: #1f2937;
     }
 
-    .customer-container {
-      max-width: 448px;
-      margin: 0 auto;
-      min-height: 100vh;
-    }
+    .customer-container { max-width: 448px; margin: 0 auto; min-height: 100vh; }
 
-    .customer-header {
-      background-color: #fff;
-      padding: 24px;
-      border-bottom: 1px solid #374151;
-    }
+    .customer-header { background-color: #fff; padding: 24px; border-bottom: 1px solid #374151; }
+    .customer-header h1 { font-size: 24px; font-weight: bold; color: #000; letter-spacing: 0.05em; }
+    .customer-header p { font-size: 14px; color: #6b7280; margin-top: 4px; }
 
-    .customer-header h1 {
-      font-size: 24px;
-      font-weight: bold;
-      color: #000;
-      letter-spacing: 0.05em;
-    }
-
-    .customer-header p {
-      font-size: 14px;
-      color: #6b7280;
-      margin-top: 4px;
-    }
-
-    .loading-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 400px;
-      gap: 16px;
-      padding: 40px 16px;
-    }
-
-    .loading-spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #e5e7eb;
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .loading-text {
-      color: #9ca3af;
-      font-size: 14px;
-    }
-
-    .error-container {
-      background-color: #fee;
-      border: 1px solid #fcc;
-      color: #c33;
-      padding: 16px;
-      margin: 16px;
-      text-align: center;
-    }
-
-    .retry-button {
-      margin-top: 12px;
-      padding: 8px 16px;
-      background-color: #000;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-    }
-
-    .retry-button:hover {
-      background-color: #333;
-    }
-
-    .vehicle-list {
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
+    .vehicle-list { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
 
     .vehicle-card {
       background-color: #fff;
       border-left: 4px solid #000;
       cursor: pointer;
       transition: transform 0.2s;
-      position: relative;
     }
+    .vehicle-card:hover { transform: translateX(4px); }
+    .vehicle-card-inner { position: relative; }
 
-    .vehicle-card:hover {
-      transform: translateX(4px);
-    }
-
-    .vehicle-card.unavailable {
-      position: relative;
-    }
-
-    .vehicle-card.unavailable::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: rgba(0, 0, 0, 0.4);
-      z-index: 1;
-      pointer-events: none;
-    }
-
-    .vehicle-card-inner {
-      position: relative;
-      z-index: 0;
-    }
-
-    .vehicle-image {
+    .vehicle-image-placeholder {
       width: 100%;
       height: 200px;
-      object-fit: cover;
-      background-color: #f3f4f6;
+      background-color: #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: #9ca3af;
     }
+    .vehicle-image-placeholder svg { width: 52px; height: 52px; opacity: .35; }
+    .vehicle-image-placeholder span { font-size: 13px; letter-spacing: .03em; }
 
-    .vehicle-card-content {
-      padding: 20px;
-    }
+    .vehicle-card-content { padding: 20px; }
+    .vehicle-card h2 { font-size: 18px; font-weight: bold; color: #000; margin-bottom: 16px; }
 
-    .vehicle-card h2 {
-      font-size: 20px;
-      font-weight: bold;
-      color: #000;
-      margin-bottom: 16px;
-      letter-spacing: 0.025em;
-    }
+    .vehicle-info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
 
-    .vehicle-info-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-      margin-bottom: 16px;
-    }
+    .info-item { border-bottom: 1px solid #d1d5db; padding-bottom: 8px; }
+    .info-item.full-width { grid-column: span 2; border: none; padding: 0; }
 
-    .info-item {
-      border-bottom: 1px solid #d1d5db;
-      padding-bottom: 8px;
-    }
-
-    .info-item.full-width {
-      grid-column: span 2;
-    }
-
-    .info-label {
-      font-size: 12px;
-      color: #6b7280;
-      margin-bottom: 4px;
-    }
-
-    .info-value {
-      font-size: 16px;
-      color: #000;
-    }
-
-    .info-value.bold {
-      font-weight: bold;
-    }
-
-    .info-value.small {
-      font-size: 14px;
-      line-height: 1.6;
-    }
+    .info-label { font-size: 12px; color: #6b7280; margin-bottom: 4px; }
+    .info-value { font-size: 16px; color: #000; }
+    .info-value.bold { font-weight: bold; }
+    .info-value.small { font-size: 14px; line-height: 1.6; }
 
     .status-badge {
       display: inline-block;
@@ -195,165 +64,52 @@
       color: #fff;
       margin-top: 8px;
     }
+    .status-available { background-color: #059669; }
 
-    .status-available {
-      background-color: #059669;
-    }
-
-    .status-unavailable {
-      background-color: #6b7280;
-    }
-
+    /* 詳細ビュー */
     .detail-view {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      top: 0; left: 0; right: 0; bottom: 0;
       background-color: #1f2937;
       z-index: 100;
       overflow-y: auto;
     }
-
-    .detail-container {
-      max-width: 448px;
-      margin: 0 auto;
-      min-height: 100vh;
-    }
+    .detail-container { max-width: 448px; margin: 0 auto; min-height: 100vh; }
 
     .detail-header {
       background-color: #fff;
       border-bottom: 1px solid #d1d5db;
-      position: sticky;
-      top: 0;
-      z-index: 10;
+      position: sticky; top: 0; z-index: 10;
     }
+    .detail-header-inner { padding: 16px; display: flex; align-items: center; gap: 12px; }
+    .back-button { padding: 8px; background: none; border: none; cursor: pointer; transition: background-color 0.2s; }
+    .back-button:hover { background-color: #f3f4f6; }
+    .detail-header h2 { font-size: 18px; font-weight: bold; }
 
-    .detail-header-inner {
-      padding: 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    .detail-content { background-color: #fff; margin: 16px; }
 
-    .back-button {
-      padding: 8px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-
-    .back-button:hover {
-      background-color: #f3f4f6;
-    }
-
-    .detail-header h2 {
-      font-size: 18px;
-      font-weight: bold;
-    }
-
-    .detail-content {
-      background-color: #fff;
-      margin: 16px;
-    }
-
-    /* ★★★ 画像ギャラリーのスタイル ★★★ */
-    .image-gallery {
-      position: relative;
-      background-color: #f3f4f6;
-    }
-
-    .main-image-container {
-      position: relative;
+    .detail-img-placeholder {
       width: 100%;
-      height: 300px;
-      background-color: #000;
-    }
-
-    .main-image {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      background-color: #000;
-    }
-
-    .image-counter {
-      position: absolute;
-      bottom: 12px;
-      right: 12px;
-      background-color: rgba(0, 0, 0, 0.7);
-      color: #fff;
-      padding: 4px 12px;
-      border-radius: 16px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .thumbnail-container {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      padding: 12px;
-      background-color: #f9fafb;
-    }
-
-    .thumbnail {
-      aspect-ratio: 1;
-      border: 2px solid transparent;
-      border-radius: 4px;
-      overflow: hidden;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .thumbnail:hover {
-      transform: scale(1.05);
-    }
-
-    .thumbnail.active {
-      border-color: #000;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    .thumbnail img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .detail-info {
-      padding: 24px;
-    }
-
-    .detail-title {
-      font-size: 24px;
-      font-weight: bold;
-      margin-bottom: 16px;
-    }
-
-    .detail-info-list {
+      height: 260px;
+      background-color: #e5e7eb;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: #9ca3af;
     }
+    .detail-img-placeholder svg { width: 64px; height: 64px; opacity: .3; }
+    .detail-img-placeholder span { font-size: 13px; }
 
-    .detail-info-item {
-      border-bottom: 1px solid #e5e7eb;
-      padding-bottom: 12px;
-    }
+    .detail-info { padding: 24px; }
+    .detail-title { font-size: 22px; font-weight: bold; margin-bottom: 20px; }
 
-    .detail-info-label {
-      font-size: 14px;
-      color: #6b7280;
-      margin-bottom: 4px;
-    }
-
-    .detail-info-value {
-      font-size: 18px;
-      font-weight: 600;
-      color: #000;
-    }
+    .detail-info-list { display: flex; flex-direction: column; gap: 16px; }
+    .detail-info-item { border-bottom: 1px solid #e5e7eb; padding-bottom: 12px; }
+    .detail-info-item:last-child { border-bottom: none; }
+    .detail-info-label { font-size: 14px; color: #6b7280; margin-bottom: 4px; }
+    .detail-info-value { font-size: 18px; font-weight: 600; color: #000; }
 
     .contact-button {
       width: 100%;
@@ -366,45 +122,38 @@
       cursor: pointer;
       margin-top: 24px;
       transition: background-color 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
+    .contact-button:hover { background-color: #16a34a; }
+    .contact-button svg { width: 22px; height: 22px; flex-shrink: 0; }
 
-    .contact-button:hover {
-      background-color: #16a34a;
+    .reservation-note {
+      margin-top: 12px;
+      padding: 12px 14px;
+      background-color: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 4px;
+      font-size: 13px;
+      color: #166534;
+      line-height: 1.7;
     }
+    .reservation-note strong { display: block; margin-bottom: 4px; font-size: 13px; }
 
-    .contact-button:disabled {
-      background-color: #9ca3af;
-      cursor: not-allowed;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    svg {
-      width: 24px;
-      height: 24px;
-    }
+    .hidden { display: none; }
+    svg { width: 24px; height: 24px; }
   </style>
 </head>
 <body>
+
   <div id="listView" class="customer-container">
     <div class="customer-header">
       <h1>CORPORATE CAR RENTAL</h1>
-      <p>法人向け車両レンタルサービス</p>
+      <p>大阪エリア 空き車両一覧</p>
     </div>
-
-    <div id="loadingContainer" class="loading-container">
-      <div class="loading-spinner"></div>
-      <div class="loading-text">車両情報を読み込んでいます...</div>
-    </div>
-
-    <div id="errorContainer" class="error-container hidden">
-      <p id="errorMessage">データの読み込みに失敗しました</p>
-      <button class="retry-button" onclick="fetchVehicleData()">再試行</button>
-    </div>
-    
-    <div class="vehicle-list hidden" id="vehicleList"></div>
+    <div class="vehicle-list" id="vehicleList"></div>
   </div>
 
   <div id="detailView" class="detail-view hidden">
@@ -413,7 +162,7 @@
         <div class="detail-header-inner">
           <button class="back-button" id="backButton">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>
           </button>
           <h2>車両詳細</h2>
@@ -423,201 +172,115 @@
     </div>
   </div>
 
-  <script>
-    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzR5SNM7Tnn5-IzjtvuHnvAGCmK-fU8ceJsDwznpSI5XkSsYorbhULfYzf1-VFbDlv7PQ/exec';
-    
-    let vehicles = [];
-    let currentImageIndex = 0;
+<script>
+  var VEHICLES = [
+    { id:1,  plate:'大阪481れ3792', inspection:'令和7年6月12日',  chassis:'S321V-0035826', price:null  },
+    { id:2,  plate:'大阪482り3618', inspection:'令和8年2月15日',  chassis:'DR17V-121581',  price:23000 },
+    { id:3,  plate:'大阪482り3689', inspection:'令和9年7月17日',  chassis:'DR17V-250121',  price:null  },
+    { id:4,  plate:'大阪482り3876', inspection:'令和9年8月12日',  chassis:'DA17V-262221',  price:null  },
+    { id:5,  plate:'大阪482り4026', inspection:'令和9年9月1日',   chassis:'DA17-140744',   price:null  },
+    { id:6,  plate:'大阪482り4122', inspection:'令和9年9月15日',  chassis:'DA17V-425827',  price:null  },
+    { id:7,  plate:'大阪480わ6011', inspection:'令和9年10月28日', chassis:'S321V-0291702', price:null  },
+    { id:8,  plate:'大阪482り4599', inspection:'令和9年11月11日', chassis:'HH5-2012359',   price:null  },
+    { id:9,  plate:'大阪482り4634', inspection:'令和9年1月20日',  chassis:'S321V-0296187', price:null  },
+    { id:10, plate:'大阪482り4705', inspection:'令和9年11月26日', chassis:'S321V-0268042', price:null  },
+    { id:11, plate:'大阪482り4915', inspection:'令和9年12月17日', chassis:'DR17V-443242',  price:null  },
+    { id:12, plate:'大阪482り5201', inspection:'令和8年9月27日',  chassis:'DA17V-343218',  price:null  },
+    { id:13, plate:'大阪482り5241', inspection:'令和10年2月5日',  chassis:'DR17V-267288',  price:null  },
+    { id:14, plate:'大阪482り5276', inspection:'令和9年2月6日',   chassis:'DA17V-369903',  price:null  },
+    { id:15, plate:'大阪482り5286', inspection:'令和9年3月9日',   chassis:'DA17V-196245',  price:null  },
+    { id:16, plate:'大阪482り5306', inspection:'令和10年2月15日', chassis:'DR17V-259599',  price:null  },
+    { id:17, plate:'岐阜480れ7185', inspection:'令和9年11月20日', chassis:'S321V-0278363', price:27500 },
+  ];
 
-    function fetchVehicleData() {
-      const loadingContainer = document.getElementById('loadingContainer');
-      const errorContainer = document.getElementById('errorContainer');
-      const vehicleList = document.getElementById('vehicleList');
-    
-      loadingContainer.classList.remove('hidden');
-      errorContainer.classList.add('hidden');
-      vehicleList.classList.add('hidden');
-    
-      fetch(GAS_API_URL + '?role=client')
-        .then(response => {
-          if (!response.ok) throw new Error('Network response was not ok');
-          return response.json();
-        })
-        .then(data => {
-          vehicles = data;
-          
-          if (Array.isArray(vehicles) && vehicles.length > 0) {
-            renderVehicleList();
-            loadingContainer.classList.add('hidden');
-            vehicleList.classList.remove('hidden');
-          } else {
-            throw new Error('車両データが0件です');
-          }
-        })
-        .catch(error => {
-          console.error('Error fetching data:', error);
-          loadingContainer.classList.add('hidden');
-          errorContainer.classList.remove('hidden');
-          document.getElementById('errorMessage').textContent = 'データの読み込みに失敗しました: ' + error.message;
-        });
-    }
+  var CAR_SVG = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 40" stroke="currentColor"><rect x="4" y="16" width="56" height="18" rx="3" stroke-width="2"/><path d="M12 16l6-11h28l6 11" stroke-width="2"/><circle cx="16" cy="34" r="4" stroke-width="2"/><circle cx="48" cy="34" r="4" stroke-width="2"/><rect x="18" y="9" width="11" height="7" rx="1" stroke-width="1.5"/><rect x="35" y="9" width="11" height="7" rx="1" stroke-width="1.5"/></svg>';
 
-    function renderVehicleList() {
-      const container = document.getElementById('vehicleList');
-      let html = '';
-      
-      const sortedVehicles = vehicles.slice().sort((a, b) => {
-        if (a.status === '貸出可' && b.status !== '貸出可') return -1;
-        if (a.status !== '貸出可' && b.status === '貸出可') return 1;
-        return 0;
-      });
-      
-      sortedVehicles.forEach(vehicle => {
-        const isAvailable = vehicle.status === '貸出可';
-        const cardClass = isAvailable ? 'vehicle-card' : 'vehicle-card unavailable';
-        const statusClass = isAvailable ? 'status-available' : 'status-unavailable';
-        const firstImage = vehicle.images && vehicle.images.length > 0 ? vehicle.images[0] : 'https://placehold.co/400x300/e5e7eb/6b7280?text=No+Image';
-        
-        html += `
-          <div class="${cardClass}" onclick="showDetail(${vehicle.id})">
-            <div class="vehicle-card-inner">
-              <img src="${firstImage}" alt="${vehicle.carModel}" class="vehicle-image">
-              <div class="vehicle-card-content">
-                <h2>${vehicle.carModel}</h2>
-                <div class="vehicle-info-grid">
-                  <div class="info-item">
-                    <div class="info-label">価格</div>
-                    <div class="info-value bold">${vehicle.price ? vehicle.price.toLocaleString() + "円/月" : "未設定"}</div>
-                  </div>
-                  <div class="info-item">
-                    <div class="info-label">ステータス</div>
-                    <div><span class="status-badge ${statusClass}">${vehicle.status}</span></div>
-                  </div>
-                </div>
-                <div class="info-item full-width">
-                  <div class="info-label">対応エリア</div>
-                  <div class="info-value small">${vehicle.area}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        `;
-      });
-      
-      container.innerHTML = html;
-    }
-    
-    // ★★★ 画像ギャラリー機能付き詳細表示 ★★★
-    function showDetail(id) {
-      const vehicle = vehicles.find(v => v.id === id);
-      if (!vehicle) return;
-      
-      currentImageIndex = 0; // リセット
-      
-      const isAvailable = vehicle.status === '貸出可';
-      const statusClass = isAvailable ? 'status-available' : 'status-unavailable';
-      
-      // 画像ギャラリーHTML生成
-      let galleryHtml = '';
-      if (vehicle.images && vehicle.images.length > 0) {
-        // メイン画像
-        galleryHtml += `
-          <div class="image-gallery">
-            <div class="main-image-container">
-              <img id="mainImage" src="${vehicle.images[0]}" alt="${vehicle.carModel}" class="main-image">
-              <div class="image-counter">
-                <span id="currentImageNumber">1</span> / ${vehicle.images.length}
-              </div>
-            </div>
-        `;
-        
-        // サムネイルグリッド（2枚以上ある場合のみ表示）
-        if (vehicle.images.length > 1) {
-          galleryHtml += '<div class="thumbnail-container">';
-          vehicle.images.forEach((imageUrl, index) => {
-            const activeClass = index === 0 ? 'active' : '';
-            galleryHtml += `
-              <div class="thumbnail ${activeClass}" onclick="changeImage(${index}, ${vehicle.id})">
-                <img src="${imageUrl}" alt="サムネイル${index + 1}">
-              </div>
-            `;
-          });
-          galleryHtml += '</div>';
-        }
-        
-        galleryHtml += '</div>';
-      } else {
-        galleryHtml = '<img src="https://placehold.co/400x300/e5e7eb/6b7280?text=No+Image" alt="No Image" class="main-image">';
-      }
-      
-      const html = `
-        ${galleryHtml}
-        <div class="detail-info">
-          <h1 class="detail-title">${vehicle.carModel}</h1>
-          <div class="detail-info-list">
-            <div class="detail-info-item">
-              <div class="detail-info-label">価格</div>
-              <div class="detail-info-value">${vehicle.price ? vehicle.price.toLocaleString() + "円/月" : "未設定"}</div>
-            </div>
-            <div class="detail-info-item">
-              <div class="detail-info-label">対応エリア</div>
-              <div class="detail-info-value">${vehicle.area}</div>
-            </div>
-            <div class="detail-info-item">
-              <div class="detail-info-label">ステータス</div>
-              <div><span class="status-badge ${statusClass}">${vehicle.status}</span></div>
-            </div>
-          </div>
-          ${isAvailable 
-            ? `<button class="contact-button" onclick="contactForReservation('${vehicle.carModel}')">LINEで予約する</button>` 
-            : `<button class="contact-button" disabled>現在貸出できません</button>`
-          }
-        </div>
-      `;
-    
-      document.getElementById('detailContent').innerHTML = html;
-      document.getElementById('listView').classList.add('hidden');
-      document.getElementById('detailView').classList.remove('hidden');
-    }
+  function priceText(price) {
+    return price ? price.toLocaleString('ja-JP') + '円/月' : '要お問い合わせ';
+  }
 
-    // ★★★ 画像切替関数 ★★★
-    function changeImage(index, vehicleId) {
-      const vehicle = vehicles.find(v => v.id === vehicleId);
-      if (!vehicle || !vehicle.images || !vehicle.images[index]) return;
-      
-      // メイン画像を更新
-      document.getElementById('mainImage').src = vehicle.images[index];
-      document.getElementById('currentImageNumber').textContent = index + 1;
-      
-      // サムネイルのactive状態を更新
-      document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
-        if (i === index) {
-          thumb.classList.add('active');
-        } else {
-          thumb.classList.remove('active');
-        }
-      });
-      
-      currentImageIndex = index;
-    }
-
-    function contactForReservation(model) {
-      const text = `【車両予約希望】\n車種: ${model}\n\nこちらの車両の予約を希望します。`;
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(text).then(() => {
-          alert('予約内容をコピーしました。LINEでメッセージを送信してください。');
-        });
-      } else {
-        alert('こちらの内容をLINEで送信してください:\n\n' + text);
-      }
-    }
-
-    document.getElementById('backButton').addEventListener('click', () => {
-      document.getElementById('detailView').classList.add('hidden');
-      document.getElementById('listView').classList.remove('hidden');
+  function renderList() {
+    var html = '';
+    VEHICLES.forEach(function(v) {
+      html += '<div class="vehicle-card" onclick="showDetail(' + v.id + ')">';
+      html += '<div class="vehicle-card-inner">';
+      html += '<div class="vehicle-image-placeholder">' + CAR_SVG + '<span>画像準備中</span></div>';
+      html += '<div class="vehicle-card-content">';
+      html += '<h2>' + v.plate + '</h2>';
+      html += '<div class="vehicle-info-grid">';
+      html += '<div class="info-item"><div class="info-label">レンタル料金</div><div class="info-value bold">' + priceText(v.price) + '</div></div>';
+      html += '<div class="info-item"><div class="info-label">ステータス</div><div><span class="status-badge status-available">空き</span></div></div>';
+      html += '</div>';
+      html += '<div class="info-item full-width"><div class="info-label">車検満了日</div><div class="info-value small">' + (v.inspection || '―') + '</div></div>';
+      html += '</div></div></div>';
     });
+    document.getElementById('vehicleList').innerHTML = html;
+  }
 
-    fetchVehicleData();
-  </script>
+  function showDetail(id) {
+    var v = VEHICLES.find(function(x) { return x.id === id; });
+    if (!v) return;
+
+    var plateEsc = v.plate.replace(/'/g, "\\'");
+
+    document.getElementById('detailContent').innerHTML =
+      '<div class="detail-img-placeholder">' + CAR_SVG + '<span>画像準備中</span></div>' +
+      '<div class="detail-info">' +
+        '<h1 class="detail-title">' + v.plate + '</h1>' +
+        '<div class="detail-info-list">' +
+          '<div class="detail-info-item"><div class="detail-info-label">ステータス</div><div><span class="status-badge status-available">空き</span></div></div>' +
+          '<div class="detail-info-item"><div class="detail-info-label">レンタル料金</div><div class="detail-info-value">' + priceText(v.price) + '</div></div>' +
+          '<div class="detail-info-item"><div class="detail-info-label">車検満了日</div><div class="detail-info-value">' + (v.inspection || '―') + '</div></div>' +
+          '<div class="detail-info-item"><div class="detail-info-label">車台番号</div><div class="detail-info-value">' + (v.chassis || '―') + '</div></div>' +
+        '</div>' +
+        '<button class="contact-button" onclick="reserveByLine(\'' + plateEsc + '\')">' +
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.03 2 11c0 2.73 1.3 5.17 3.36 6.85L4.5 21l3.36-1.76A10.8 10.8 0 0012 20c5.52 0 10-4.03 10-9S17.52 2 12 2z"/></svg>' +
+          'LINEで予約する' +
+        '</button>' +
+        '<div class="reservation-note">' +
+          '<strong>📋 予約方法</strong>' +
+          '下のボタンを押すと、車両ナンバー「' + v.plate + '」を含む予約メッセージがコピーされます。<br>' +
+          'TASK公式LINEを開いてそのまま貼り付けて送信してください。' +
+        '</div>' +
+      '</div>';
+
+    document.getElementById('listView').classList.add('hidden');
+    document.getElementById('detailView').classList.remove('hidden');
+    document.getElementById('detailView').scrollTop = 0;
+  }
+
+  function reserveByLine(plate) {
+    var text = '【車両レンタル予約希望】\n車両ナンバー: ' + plate + '\n\nこちらの車両のレンタルを希望します。';
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function() {
+        alert('コピーしました！\nTASK公式LINEに貼り付けて送信してください。');
+      }).catch(function() { fallbackCopy(text); });
+    } else {
+      fallbackCopy(text);
+    }
+  }
+
+  function fallbackCopy(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;opacity:0;';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    try {
+      document.execCommand('copy');
+      alert('コピーしました！\nTASK公式LINEに貼り付けて送信してください。');
+    } catch(e) {
+      alert('以下をTASK公式LINEに送信してください:\n\n' + text);
+    }
+    document.body.removeChild(ta);
+  }
+
+  document.getElementById('backButton').addEventListener('click', function() {
+    document.getElementById('detailView').classList.add('hidden');
+    document.getElementById('listView').classList.remove('hidden');
+  });
+
+  renderList();
+</script>
 </body>
 </html>
