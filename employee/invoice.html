@@ -388,12 +388,18 @@ var vehicleCache  = [];
 var vehicleLoaded = false;
 
 var PRESETS = [
-  { v:'車両代', l:'車両代',   p:0    },
-  { v:'名変',   l:'名変',     p:4000 },
-  { v:'立替',   l:'立替',     p:0    },
-  { v:'修理代', l:'修理代',   p:0    },
-  { v:'custom', l:'自由記述', p:0    }
+  { v:'車両代', l:'車両代',   p:0,    hasSub:true  }, // ★ 車両ナンバー入力あり
+  { v:'名変',   l:'名変',     p:4000, hasSub:false },
+  { v:'立替',   l:'立替',     p:0,    hasSub:false },
+  { v:'修理代', l:'修理代',   p:0,    hasSub:false },
+  { v:'custom', l:'自由記述', p:0,    hasSub:true  }  // 自由記述もサジェストあり
 ];
+
+// サジェスト入力欄を表示すべきプリセット値
+function hasSubInput(ct) {
+  var p = PRESETS.find(function(x) { return x.v === ct; });
+  return p ? p.hasSub : false;
+}
 
 // ============================================================
 // 初期化
@@ -500,14 +506,15 @@ function addLineItem(dateVal, ctType, ctText, qty, price, memo) {
   row.className = 'li-row';
   row.id = 'li_' + id;
 
-  /* innerHTML は二重引用符のみ使用 */
+  var showSub = hasSubInput(ct);
+  var subPlaceholder = (ct === '車両代') ? '車両ナンバーを入力 or 検索…' : '内容を入力 or 車両検索…';
   var sugId = 'sug_' + id;
   row.innerHTML =
     '<input type="text" placeholder="例）4/1" id="liDate_' + id + '" value="' + eA(dateVal||'') + '" style="font-size:12px;">' +
     '<div class="li-content-wrap">' +
       '<select id="liType_' + id + '">' + opts + '</select>' +
-      '<div class="suggest-wrap" id="liSugWrap_' + id + '" style="' + (ct==='custom' ? '' : 'display:none;') + '">' +
-        '<input type="text" placeholder="内容を入力 or 車両検索…" id="liDesc_' + id + '" value="' + eA(ct==='custom'?(ctText||''):ct) + '" autocomplete="off">' +
+      '<div class="suggest-wrap" id="liSugWrap_' + id + '" style="' + (showSub ? '' : 'display:none;') + '">' +
+        '<input type="text" placeholder="' + subPlaceholder + '" id="liDesc_' + id + '" value="' + eA(showSub?(ctText||''):'') + '" autocomplete="off">' +
         '<div class="suggest-dropdown" id="' + sugId + '"></div>' +
       '</div>' +
     '</div>' +
@@ -545,11 +552,15 @@ function onTypeChange(id, val) {
   var item = lineItems.find(function(i) { return i.id === id; });
   if (!item) return;
   item.ct = val;
-  var wrap  = document.getElementById('liSugWrap_' + id);
-  var priceEl = document.getElementById('liPrice_' + id);
-  if (val === 'custom') {
+  var wrap    = document.getElementById('liSugWrap_' + id);
+  var descEl  = document.getElementById('liDesc_'    + id);
+  var priceEl = document.getElementById('liPrice_'   + id);
+
+  if (hasSubInput(val)) {
     wrap.style.display = '';
-    item.ctText = (document.getElementById('liDesc_'+id) || {}).value || '';
+    // プレースホルダーを用途に合わせて切り替え
+    if (descEl) descEl.placeholder = (val === '車両代') ? '車両ナンバーを入力 or 検索…' : '内容を入力 or 車両検索…';
+    item.ctText = descEl ? descEl.value : '';
   } else {
     wrap.style.display = 'none';
     item.ctText = val;
@@ -698,7 +709,14 @@ function updatePreview() {
     tbody.innerHTML = '<tr><td colspan="7" style="color:#9ca3af;text-align:center;padding:20px;">明細を入力してください</td></tr>';
   } else {
     tbody.innerHTML = lineItems.map(function(item, idx) {
-      var label = (item.ct === 'custom') ? (item.ctText || '―') : item.ct;
+      var label;
+      if (item.ct === 'custom') {
+        label = item.ctText || '―';
+      } else if (item.ct === '車両代' && item.ctText) {
+        label = '車両代　' + item.ctText; // ★ 車両代 + ナンバー
+      } else {
+        label = item.ct;
+      }
       var amt   = (item.qty || 0) * (item.price || 0);
       subtotal += amt;
       return '<tr>'
@@ -758,11 +776,14 @@ function exportPdf() {
     document.getElementById('invScaleWrap').style.height = '';
 
     html2canvas(paper, {
-      scale: 2,           // 高解像度
+      scale: 2,
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#ffffff',
-      logging: false
+      logging: false,
+      // ★ min-heightを無視して実コンテンツ高さでキャプチャ
+      height: paper.scrollHeight,
+      windowHeight: paper.scrollHeight
     }).then(function(canvas) {
       // スケール復元
       inner.style.transform = origTransform;
@@ -771,7 +792,6 @@ function exportPdf() {
         previewPanel.style.display = 'none';
       }
 
-      var imgData = canvas.toDataURL('image/jpeg', 0.95);
       var pdf = new window.jspdf.jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -779,20 +799,38 @@ function exportPdf() {
       });
 
       // A4: 210mm x 297mm
-      var pageW = 210;
-      var pageH = 297;
-      var imgW = pageW;
-      var imgH = (canvas.height * pageW) / canvas.width;
+      var pageW_mm = 210;
+      var pageH_mm = 297;
 
-      // 複数ページ対応
-      if (imgH <= pageH) {
-        pdf.addImage(imgData, 'JPEG', 0, 0, imgW, imgH);
+      var canvasW = canvas.width;
+      var canvasH = canvas.height;
+
+      // canvasをmm換算したときの全体高さ
+      var totalH_mm = canvasH * pageW_mm / canvasW;
+
+      // 1ページ分に収まるなら1枚だけ出力（★2ページ目白紙バグ防止）
+      if (totalH_mm <= pageH_mm) {
+        pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pageW_mm, totalH_mm);
       } else {
-        var posY = 0;
-        while (posY < imgH) {
-          pdf.addImage(imgData, 'JPEG', 0, -posY, imgW, imgH);
-          posY += pageH;
-          if (posY < imgH) pdf.addPage();
+        // 複数ページ：1ページ分のcanvas高さ（px換算）
+        var pageCanvasH = Math.floor(canvasW * pageH_mm / pageW_mm);
+        var totalPages  = Math.ceil(canvasH / pageCanvasH);
+
+        for (var page = 0; page < totalPages; page++) {
+          if (page > 0) pdf.addPage();
+          var srcY = page * pageCanvasH;
+          var srcH = Math.min(pageCanvasH, canvasH - srcY);
+
+          var sliceCanvas = document.createElement('canvas');
+          sliceCanvas.width  = canvasW;
+          sliceCanvas.height = pageCanvasH;
+          var ctx = sliceCanvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+          ctx.drawImage(canvas, 0, srcY, canvasW, srcH, 0, 0, canvasW, srcH);
+
+          var sliceH_mm = srcH * pageW_mm / canvasW;
+          pdf.addImage(sliceCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pageW_mm, sliceH_mm);
         }
       }
 
