@@ -175,22 +175,21 @@
 <script>
   var VEHICLES = [
     { id:1,  plate:'大阪481れ3792', inspection:'令和7年6月12日',  chassis:'S321V-0035826', price:null  },
-    { id:2,  plate:'大阪482り3618', inspection:'令和8年2月15日',  chassis:'DR17V-121581',  price:23000 },
-    { id:3,  plate:'大阪482り3689', inspection:'令和9年7月17日',  chassis:'DR17V-250121',  price:null  },
-    { id:4,  plate:'大阪482り3876', inspection:'令和9年8月12日',  chassis:'DA17V-262221',  price:null  },
-    { id:5,  plate:'大阪482り4026', inspection:'令和9年9月1日',   chassis:'DA17-140744',   price:null  },
-    { id:6,  plate:'大阪482り4122', inspection:'令和9年9月15日',  chassis:'DA17V-425827',  price:null  },
-    { id:7,  plate:'大阪480わ6011', inspection:'令和9年10月28日', chassis:'S321V-0291702', price:null  },
-    { id:8,  plate:'大阪482り4599', inspection:'令和9年11月11日', chassis:'HH5-2012359',   price:null  },
-    { id:9,  plate:'大阪482り4634', inspection:'令和9年1月20日',  chassis:'S321V-0296187', price:null  },
-    { id:10, plate:'大阪482り4705', inspection:'令和9年11月26日', chassis:'S321V-0268042', price:null  },
-    { id:11, plate:'大阪482り4915', inspection:'令和9年12月17日', chassis:'DR17V-443242',  price:null  },
-    { id:12, plate:'大阪482り5201', inspection:'令和8年9月27日',  chassis:'DA17V-343218',  price:null  },
-    { id:13, plate:'大阪482り5241', inspection:'令和10年2月5日',  chassis:'DR17V-267288',  price:null  },
-    { id:14, plate:'大阪482り5276', inspection:'令和9年2月6日',   chassis:'DA17V-369903',  price:null  },
-    { id:15, plate:'大阪482り5286', inspection:'令和9年3月9日',   chassis:'DA17V-196245',  price:null  },
-    { id:16, plate:'大阪482り5306', inspection:'令和10年2月15日', chassis:'DR17V-259599',  price:null  },
-    { id:17, plate:'岐阜480れ7185', inspection:'令和9年11月20日', chassis:'S321V-0278363', price:27500 },
+    { id:2,  plate:'大阪480や614',  inspection:'令和9年2月13日',  chassis:'S331V-0140577', price:null  },
+    { id:3,  plate:'大阪482り3618', inspection:'令和8年2月15日',  chassis:'DR17V-121581',  price:23000 },
+    { id:4,  plate:'大阪482り3689', inspection:'令和9年7月17日',  chassis:'DR17V-250121',  price:null  },
+    { id:5,  plate:'大阪482り3876', inspection:'令和9年8月12日',  chassis:'DA17V-262221',  price:null  },
+    { id:6,  plate:'大阪482り4026', inspection:'令和9年9月1日',   chassis:'DA17-140744',   price:null  },
+    { id:7,  plate:'大阪482り4122', inspection:'令和9年9月15日',  chassis:'DA17V-425827',  price:null  },
+    { id:8,  plate:'大阪480わ6011', inspection:'令和9年10月28日', chassis:'S321V-0291702', price:null  },
+    { id:9,  plate:'大阪482り4599', inspection:'令和9年11月11日', chassis:'HH5-2012359',   price:null  },
+    { id:10, plate:'大阪482り4634', inspection:'令和9年1月20日',  chassis:'S321V-0296187', price:null  },
+    { id:11, plate:'大阪482り4705', inspection:'令和9年11月26日', chassis:'S321V-0268042', price:null  },
+    { id:12, plate:'大阪482り4915', inspection:'令和9年12月17日', chassis:'DR17V-443242',  price:null  },
+    { id:13, plate:'岐阜480れ7185', inspection:'令和9年11月20日', chassis:'S321V-0278363', price:27500 },
+    { id:14, plate:'大阪482り5201', inspection:'令和8年9月27日',  chassis:'DA17V-343218',  price:null  },
+    { id:15, plate:'大阪482り5241', inspection:'令和10年2月5日',  chassis:'DR17V-267288',  price:null  },
+    { id:16, plate:'大阪482り5286', inspection:'令和9年3月9日',   chassis:'DA17V-196245',  price:null  },
   ];
 
   var CAR_SVG = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 40" stroke="currentColor"><rect x="4" y="16" width="56" height="18" rx="3" stroke-width="2"/><path d="M12 16l6-11h28l6 11" stroke-width="2"/><circle cx="16" cy="34" r="4" stroke-width="2"/><circle cx="48" cy="34" r="4" stroke-width="2"/><rect x="18" y="9" width="11" height="7" rx="1" stroke-width="1.5"/><rect x="35" y="9" width="11" height="7" rx="1" stroke-width="1.5"/></svg>';
@@ -239,7 +238,7 @@
         '</button>' +
         '<div class="reservation-note">' +
           '<strong>📋 予約方法</strong>' +
-          '下のボタンを押すと、車両ナンバー「' + v.plate + '」を含む予約メッセージがコピーされます。<br>' +
+          'ボタンを押すと、車両ナンバー「' + v.plate + '」を含む予約メッセージがコピーされます。<br>' +
           'TASK公式LINEを開いてそのまま貼り付けて送信してください。' +
         '</div>' +
       '</div>';
