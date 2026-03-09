@@ -6,152 +6,60 @@
   <title>空き車両一覧 - 大阪エリア | 株式会社TASK</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-      background-color: #1f2937;
-    }
-
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; background-color: #1f2937; }
     .customer-container { max-width: 448px; margin: 0 auto; min-height: 100vh; }
-
     .customer-header { background-color: #fff; padding: 24px; border-bottom: 1px solid #374151; }
     .customer-header h1 { font-size: 24px; font-weight: bold; color: #000; letter-spacing: 0.05em; }
     .customer-header p { font-size: 14px; color: #6b7280; margin-top: 4px; }
-
     .vehicle-list { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-
-    .vehicle-card {
-      background-color: #fff;
-      border-left: 4px solid #000;
-      cursor: pointer;
-      transition: transform 0.2s;
-    }
+    .vehicle-card { background-color: #fff; border-left: 4px solid #000; cursor: pointer; transition: transform 0.2s; }
     .vehicle-card:hover { transform: translateX(4px); }
-    .vehicle-card-inner { position: relative; }
-
-    .vehicle-image-placeholder {
-      width: 100%;
-      height: 200px;
-      background-color: #e5e7eb;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      color: #9ca3af;
-    }
+    .vehicle-image-placeholder { width: 100%; height: 200px; background-color: #e5e7eb; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #9ca3af; }
     .vehicle-image-placeholder svg { width: 52px; height: 52px; opacity: .35; }
     .vehicle-image-placeholder span { font-size: 13px; letter-spacing: .03em; }
-
     .vehicle-card-content { padding: 20px; }
     .vehicle-card h2 { font-size: 18px; font-weight: bold; color: #000; margin-bottom: 16px; }
-
     .vehicle-info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
-
     .info-item { border-bottom: 1px solid #d1d5db; padding-bottom: 8px; }
     .info-item.full-width { grid-column: span 2; border: none; padding: 0; }
-
     .info-label { font-size: 12px; color: #6b7280; margin-bottom: 4px; }
     .info-value { font-size: 16px; color: #000; }
     .info-value.bold { font-weight: bold; }
     .info-value.small { font-size: 14px; line-height: 1.6; }
-
-    .status-badge {
-      display: inline-block;
-      padding: 4px 12px;
-      font-size: 12px;
-      font-weight: 600;
-      color: #fff;
-      margin-top: 8px;
-    }
+    .status-badge { display: inline-block; padding: 4px 12px; font-size: 12px; font-weight: 600; color: #fff; margin-top: 8px; }
     .status-available { background-color: #059669; }
-
-    /* 詳細ビュー */
-    .detail-view {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-color: #1f2937;
-      z-index: 100;
-      overflow-y: auto;
-    }
+    .detail-view { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: #1f2937; z-index: 100; overflow-y: auto; }
     .detail-container { max-width: 448px; margin: 0 auto; min-height: 100vh; }
-
-    .detail-header {
-      background-color: #fff;
-      border-bottom: 1px solid #d1d5db;
-      position: sticky; top: 0; z-index: 10;
-    }
+    .detail-header { background-color: #fff; border-bottom: 1px solid #d1d5db; position: sticky; top: 0; z-index: 10; }
     .detail-header-inner { padding: 16px; display: flex; align-items: center; gap: 12px; }
     .back-button { padding: 8px; background: none; border: none; cursor: pointer; transition: background-color 0.2s; }
     .back-button:hover { background-color: #f3f4f6; }
     .detail-header h2 { font-size: 18px; font-weight: bold; }
-
     .detail-content { background-color: #fff; margin: 16px; }
-
-    .detail-img-placeholder {
-      width: 100%;
-      height: 260px;
-      background-color: #e5e7eb;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      color: #9ca3af;
-    }
+    .detail-img-placeholder { width: 100%; height: 260px; background-color: #e5e7eb; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #9ca3af; }
     .detail-img-placeholder svg { width: 64px; height: 64px; opacity: .3; }
     .detail-img-placeholder span { font-size: 13px; }
-
     .detail-info { padding: 24px; }
     .detail-title { font-size: 22px; font-weight: bold; margin-bottom: 20px; }
-
     .detail-info-list { display: flex; flex-direction: column; gap: 16px; }
     .detail-info-item { border-bottom: 1px solid #e5e7eb; padding-bottom: 12px; }
     .detail-info-item:last-child { border-bottom: none; }
     .detail-info-label { font-size: 14px; color: #6b7280; margin-bottom: 4px; }
     .detail-info-value { font-size: 18px; font-weight: 600; color: #000; }
-
-    .contact-button {
-      width: 100%;
-      background-color: #22c55e;
-      color: #fff;
-      padding: 16px;
-      font-size: 16px;
-      font-weight: bold;
-      border: none;
-      cursor: pointer;
-      margin-top: 24px;
-      transition: background-color 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
+    .contact-button { width: 100%; background-color: #22c55e; color: #fff; padding: 16px; font-size: 16px; font-weight: bold; border: none; cursor: pointer; margin-top: 24px; transition: background-color 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .contact-button:hover { background-color: #16a34a; }
     .contact-button svg { width: 22px; height: 22px; flex-shrink: 0; }
-
-    .reservation-note {
-      margin-top: 12px;
-      padding: 12px 14px;
-      background-color: #f0fdf4;
-      border: 1px solid #bbf7d0;
-      border-radius: 4px;
-      font-size: 13px;
-      color: #166534;
-      line-height: 1.7;
-    }
+    .reservation-note { margin-top: 12px; padding: 12px 14px; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 4px; font-size: 13px; color: #166534; line-height: 1.7; }
     .reservation-note strong { display: block; margin-bottom: 4px; font-size: 13px; }
-
     .hidden { display: none; }
     svg { width: 24px; height: 24px; }
   </style>
 </head>
 <body>
-
   <div id="listView" class="customer-container">
     <div class="customer-header">
       <h1>CORPORATE CAR RENTAL</h1>
-      <p>大阪エリア 空き車両一覧</p>
+      <p>大阪エリア 空き車両一覧（16台）</p>
     </div>
     <div class="vehicle-list" id="vehicleList"></div>
   </div>
@@ -194,24 +102,22 @@
 
   var CAR_SVG = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 40" stroke="currentColor"><rect x="4" y="16" width="56" height="18" rx="3" stroke-width="2"/><path d="M12 16l6-11h28l6 11" stroke-width="2"/><circle cx="16" cy="34" r="4" stroke-width="2"/><circle cx="48" cy="34" r="4" stroke-width="2"/><rect x="18" y="9" width="11" height="7" rx="1" stroke-width="1.5"/><rect x="35" y="9" width="11" height="7" rx="1" stroke-width="1.5"/></svg>';
 
-  function priceText(price) {
-    return price ? price.toLocaleString('ja-JP') + '円/月' : '要お問い合わせ';
-  }
+  function priceText(p) { return p ? p.toLocaleString('ja-JP') + '円/月' : '要お問い合わせ'; }
 
   function renderList() {
     var html = '';
     VEHICLES.forEach(function(v) {
-      html += '<div class="vehicle-card" onclick="showDetail(' + v.id + ')">';
-      html += '<div class="vehicle-card-inner">';
-      html += '<div class="vehicle-image-placeholder">' + CAR_SVG + '<span>画像準備中</span></div>';
-      html += '<div class="vehicle-card-content">';
-      html += '<h2>' + v.plate + '</h2>';
-      html += '<div class="vehicle-info-grid">';
-      html += '<div class="info-item"><div class="info-label">レンタル料金</div><div class="info-value bold">' + priceText(v.price) + '</div></div>';
-      html += '<div class="info-item"><div class="info-label">ステータス</div><div><span class="status-badge status-available">空き</span></div></div>';
-      html += '</div>';
-      html += '<div class="info-item full-width"><div class="info-label">車検満了日</div><div class="info-value small">' + (v.inspection || '―') + '</div></div>';
-      html += '</div></div></div>';
+      html += '<div class="vehicle-card" onclick="showDetail(' + v.id + ')">'
+        + '<div class="vehicle-card-inner">'
+        + '<div class="vehicle-image-placeholder">' + CAR_SVG + '<span>画像準備中</span></div>'
+        + '<div class="vehicle-card-content">'
+        + '<h2>' + v.plate + '</h2>'
+        + '<div class="vehicle-info-grid">'
+        + '<div class="info-item"><div class="info-label">レンタル料金</div><div class="info-value bold">' + priceText(v.price) + '</div></div>'
+        + '<div class="info-item"><div class="info-label">ステータス</div><div><span class="status-badge status-available">空き</span></div></div>'
+        + '</div>'
+        + '<div class="info-item full-width"><div class="info-label">車検満了日</div><div class="info-value small">' + (v.inspection || '―') + '</div></div>'
+        + '</div></div></div>';
     });
     document.getElementById('vehicleList').innerHTML = html;
   }
@@ -219,30 +125,22 @@
   function showDetail(id) {
     var v = VEHICLES.find(function(x) { return x.id === id; });
     if (!v) return;
-
-    var plateEsc = v.plate.replace(/'/g, "\\'");
-
+    var pe = v.plate.replace(/'/g, "\\'");
     document.getElementById('detailContent').innerHTML =
-      '<div class="detail-img-placeholder">' + CAR_SVG + '<span>画像準備中</span></div>' +
-      '<div class="detail-info">' +
-        '<h1 class="detail-title">' + v.plate + '</h1>' +
-        '<div class="detail-info-list">' +
-          '<div class="detail-info-item"><div class="detail-info-label">ステータス</div><div><span class="status-badge status-available">空き</span></div></div>' +
-          '<div class="detail-info-item"><div class="detail-info-label">レンタル料金</div><div class="detail-info-value">' + priceText(v.price) + '</div></div>' +
-          '<div class="detail-info-item"><div class="detail-info-label">車検満了日</div><div class="detail-info-value">' + (v.inspection || '―') + '</div></div>' +
-          '<div class="detail-info-item"><div class="detail-info-label">車台番号</div><div class="detail-info-value">' + (v.chassis || '―') + '</div></div>' +
-        '</div>' +
-        '<button class="contact-button" onclick="reserveByLine(\'' + plateEsc + '\')">' +
-          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.03 2 11c0 2.73 1.3 5.17 3.36 6.85L4.5 21l3.36-1.76A10.8 10.8 0 0012 20c5.52 0 10-4.03 10-9S17.52 2 12 2z"/></svg>' +
-          'LINEで予約する' +
-        '</button>' +
-        '<div class="reservation-note">' +
-          '<strong>📋 予約方法</strong>' +
-          'ボタンを押すと、車両ナンバー「' + v.plate + '」を含む予約メッセージがコピーされます。<br>' +
-          'TASK公式LINEを開いてそのまま貼り付けて送信してください。' +
-        '</div>' +
-      '</div>';
-
+      '<div class="detail-img-placeholder">' + CAR_SVG + '<span>画像準備中</span></div>'
+      + '<div class="detail-info">'
+      + '<h1 class="detail-title">' + v.plate + '</h1>'
+      + '<div class="detail-info-list">'
+      + '<div class="detail-info-item"><div class="detail-info-label">ステータス</div><div><span class="status-badge status-available">空き</span></div></div>'
+      + '<div class="detail-info-item"><div class="detail-info-label">レンタル料金</div><div class="detail-info-value">' + priceText(v.price) + '</div></div>'
+      + '<div class="detail-info-item"><div class="detail-info-label">車検満了日</div><div class="detail-info-value">' + (v.inspection || '―') + '</div></div>'
+      + '<div class="detail-info-item"><div class="detail-info-label">車台番号</div><div class="detail-info-value">' + (v.chassis || '―') + '</div></div>'
+      + '</div>'
+      + '<button class="contact-button" onclick="reserveByLine(\'' + pe + '\')">'
+      + '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.03 2 11c0 2.73 1.3 5.17 3.36 6.85L4.5 21l3.36-1.76A10.8 10.8 0 0012 20c5.52 0 10-4.03 10-9S17.52 2 12 2z"/></svg>'
+      + 'LINEで予約する</button>'
+      + '<div class="reservation-note"><strong>📋 予約方法</strong>ボタンを押すと、車両ナンバー「' + v.plate + '」を含む予約メッセージがコピーされます。<br>TASK公式LINEを開いてそのまま貼り付けて送信してください。</div>'
+      + '</div>';
     document.getElementById('listView').classList.add('hidden');
     document.getElementById('detailView').classList.remove('hidden');
     document.getElementById('detailView').scrollTop = 0;
@@ -254,9 +152,7 @@
       navigator.clipboard.writeText(text).then(function() {
         alert('コピーしました！\nTASK公式LINEに貼り付けて送信してください。');
       }).catch(function() { fallbackCopy(text); });
-    } else {
-      fallbackCopy(text);
-    }
+    } else { fallbackCopy(text); }
   }
 
   function fallbackCopy(text) {
@@ -265,12 +161,8 @@
     ta.style.cssText = 'position:fixed;opacity:0;';
     document.body.appendChild(ta);
     ta.focus(); ta.select();
-    try {
-      document.execCommand('copy');
-      alert('コピーしました！\nTASK公式LINEに貼り付けて送信してください。');
-    } catch(e) {
-      alert('以下をTASK公式LINEに送信してください:\n\n' + text);
-    }
+    try { document.execCommand('copy'); alert('コピーしました！\nTASK公式LINEに貼り付けて送信してください。'); }
+    catch(e) { alert('以下をTASK公式LINEに送信してください:\n\n' + text); }
     document.body.removeChild(ta);
   }
 
